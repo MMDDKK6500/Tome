@@ -4,6 +4,7 @@ using SharpCompress.Archives;
 using SharpCompress.Common;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using Tome.Models;
 using Tome.Services;
@@ -12,6 +13,11 @@ namespace Tome;
 
 public partial class Downloads : Window
 {
+    [GeneratedRegex(@"\Apak\d\d_dir\.vpk\z", RegexOptions.CultureInvariant | RegexOptions.Compiled)]
+    private static partial Regex VpkMatchRegexGen();
+
+    private static readonly Regex s_vpkMatchRegex = VpkMatchRegexGen();
+
     private readonly FileService _files;
     private readonly DeadlockService _deadlock;
     private readonly GamebananaService _gamebanana;
@@ -371,7 +377,9 @@ public partial class Downloads : Window
                 for (int i = 1; i <= 100; i++)
                 {
                     fullPath = Path.Combine(addonsFolder, relativePath);
-                    if (!File.Exists(fullPath))
+                    string fileName = Path.GetFileName(fullPath);
+
+                    if (s_vpkMatchRegex.IsMatch(fileName) && !File.Exists(fullPath))
                         break;
 
                     relativePath = $"pak{i:D2}_dir.vpk";
