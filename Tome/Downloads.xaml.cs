@@ -386,7 +386,7 @@ public partial class Downloads : Window
                 relativePath = Path.GetFileName(modFile.SourceName);
                 
                 string fullPath = string.Empty;
-                for (int i = 1; i <= 100; i++)
+                for (int i = 1; i < 100; i++)
                 {
                     fullPath = Path.Combine(addonsFolder, relativePath);
                     string fileName = Path.GetFileName(fullPath);
