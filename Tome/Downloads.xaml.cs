@@ -1,5 +1,7 @@
 ﻿using GamebananaAPI.Data.Submission;
 using Microsoft.Extensions.DependencyInjection;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -70,8 +72,8 @@ public partial class Downloads : Window
 
             foreach ((int id, ModAction action) in _requestedActions)
             {
-                string? targetName = action.Type is ModActionType.Update or ModActionType.Delete
-                    ? Path.GetFileName(_manifest.Mods[id].RelativePath) : null;
+                string? targetRelativePath = action.Type is ModActionType.Update or ModActionType.Delete
+                    ? _manifest.Mods[id].RelativePath : null;
 
                 ModFile file;
                 FileInfo fileInfo;
@@ -84,9 +86,13 @@ public partial class Downloads : Window
                             fileInfo = new FileInfo(action.Mod.Path!);
                             file = new ModFile(
                                 Source: new Uri(fileInfo.FullName, UriKind.Absolute),
-                                Md5: CryptographyUtil.Md5File(fileInfo.FullName),
-                                TargetName: targetName,
-                                Size: fileInfo.Length
+                                SourceName: fileInfo.Name,
+                                SourceMd5: CryptographyUtil.Md5File(fileInfo.FullName),
+                                SourceSize: fileInfo.Length,
+
+                                TargetRelativePath: targetRelativePath,
+                                GamebananaSubmission: null,
+                                GamebananaFile: null
                             );
                             break;
                         }
@@ -109,9 +115,13 @@ public partial class Downloads : Window
 
                         file = new ModFile(
                             Source: new Uri(remoteFile.DownloadUrl),
-                            Md5: remoteFile.Md5Checksum,
-                            TargetName: targetName,
-                            Size: remoteFile.Size
+                            SourceName: remoteFile.Name,
+                            SourceMd5: remoteFile.Md5Checksum,
+                            SourceSize: remoteFile.Size,
+
+                            TargetRelativePath: targetRelativePath,
+                            GamebananaSubmission: submission,
+                            GamebananaFile: remoteFile
                         );
                         break;
 
@@ -122,9 +132,13 @@ public partial class Downloads : Window
 
                         file = new ModFile(
                             Source: new Uri(fileInfo.FullName, UriKind.Absolute),
-                            Md5: registeredMod.OriginalFileMd5Checksum,
-                            TargetName: targetName,
-                            Size: fileInfo.Length
+                            SourceName: fileInfo.Name,
+                            SourceMd5: registeredMod.OriginalFileMd5Checksum,
+                            SourceSize: fileInfo.Length,
+
+                            TargetRelativePath: targetRelativePath,
+                            GamebananaSubmission: null,
+                            GamebananaFile: null
                         );
                         break;
 
@@ -191,51 +205,228 @@ public partial class Downloads : Window
 
     private async Task<bool> ExecuteActionsAsync(Queue<(ModAction, ModFile)> queue)
     {
-        DownloadProgressBorder.Visibility = Visibility.Visible;
-        DownloadProgressBar.Minimum = 0;
-        DownloadProgressBar.Maximum = 1;
+        List<string> tempFiles = [];
 
-        foreach ((ModAction action, ModFile file) in queue)
+        try
         {
-            switch (action.Type)
+            DownloadProgressBorder.Visibility = Visibility.Visible;
+            DownloadProgressBar.Minimum = 0;
+            DownloadProgressBar.Maximum = 1;
+
+            foreach ((ModAction action, ModFile file) in queue)
             {
-                case ModActionType.Update:
-                case ModActionType.Install:
-                    CurrentDownloadText.Text = $"Downloading {action.Mod.Name ?? file.Source.ToString()}...";
-                    DownloadProgressBar.Value = 0;
+                switch (action.Type)
+                {
+                    case ModActionType.Update:
+                    case ModActionType.Install:
+                        string modName = action.Mod.Name ?? file.Source.ToString();
+                        CurrentDownloadText.Text = $"Downloading {modName}...";
+                        DownloadProgressBar.Value = 0;
 
-                    string path = Path.GetTempFileName();
-                    string? contentType = await _gamebanana.DownloadAsync(file.Source, path, progress =>
-                        DownloadProgressBar.Value = (double)progress / file.Size);
+                        string path = Path.GetTempFileName();
+                        tempFiles.Add(path);
 
-                    break;
+                        string? contentType = await _gamebanana.DownloadAsync(file.Source, path, progress =>
+                            DownloadProgressBar.Value = (double)progress / file.SourceSize);
 
-                case ModActionType.Delete:
-                    CurrentDownloadText.Text = $"Deleting {action.Mod.Name ?? file.TargetName}...";
-                    DownloadProgressBar.Value = 1;
+                        CurrentDownloadText.Text = $"Processing {modName}...";
+                        DownloadProgressBar.IsIndeterminate = true;
 
-                    string filePath = file.Source.LocalPath;
-                    string md5 = CryptographyUtil.Md5File(filePath);
+                        await ProcessDownloadedContentAsync(path, action, file);
+                        break;
 
-                    if (!md5.Equals(file.Md5, StringComparison.InvariantCulture))
-                    {
-                        MessageBoxResult result = MessageBox.Show(this, $"'{action.Mod.Name ?? file.TargetName}' does not match its known checksum. " +
-                                                                        $"You may have edited the mod outside of Tome. Continue with deletion?", "Checksum mismatch",
-                                                                        MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    case ModActionType.Delete:
+                        CurrentDownloadText.Text = $"Deleting {action.Mod.Name ?? file.TargetRelativePath}...";
+                        DownloadProgressBar.Value = 1;
 
-                        if (result == MessageBoxResult.No)
-                            continue;
-                    }
+                        string filePath = file.Source.LocalPath;
+                        string md5 = CryptographyUtil.Md5File(filePath);
 
-                    File.Delete(filePath);
-                    break;
+                        if (!md5.Equals(file.SourceMd5, StringComparison.InvariantCulture))
+                        {
+                            MessageBoxResult result = MessageBox.Show(this, $"'{action.Mod.Name ?? file.TargetRelativePath}' does not match its known checksum. " +
+                                                                            $"You may have edited the mod outside of Tome. Continue with deletion?", "Checksum mismatch",
+                                                                            MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
-                default:
-                    throw new NotImplementedException($"Case for '{action.Type}' not implemented.");
+                            if (result == MessageBoxResult.No)
+                                continue;
+                        }
+
+                        File.Delete(filePath);
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Case for '{action.Type}' not implemented.");
+                }
             }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Could not complete all actions",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
+
+            return false;
+        }
+        finally
+        {
+            foreach (string tempFile in tempFiles)
+                File.Delete(tempFile);
+        }
+    }
+
+    private async Task<bool> ProcessDownloadedContentAsync(string path, ModAction action, ModFile file)
+    {
+        string ext = Path.GetExtension(file.SourceName);
+        using FileStream stream = File.OpenRead(path);
+
+        if (ext is ".vpk")
+            return await InstallFileAsync(stream, action, file);
+
+        if (!ArchiveFactory.IsArchive(stream, out ArchiveType? archiveType) || archiveType is null)
+        {
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' is an unknown or unsupported format. Skip?", "Invalid mod file",
+                                                            MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+
+            return result == MessageBoxResult.OK;
         }
 
-        return true;
+        if (!string.IsNullOrEmpty(file.SourceMd5)
+            && !file.SourceMd5.Equals(CryptographyUtil.Md5Stream(stream), StringComparison.InvariantCulture))
+        {
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' does not match its known checksum and is corrupt. Skip?", "Checksum mismatch",
+                                                            MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+            return result == MessageBoxResult.OK;
+        }
+
+        using IArchive archive = ArchiveFactory.OpenArchive(stream);
+        IArchiveEntry[] entries = [.. archive.Entries.Where(static entry => entry.IsDirectory)];
+
+        if (entries.Length == 0)
+        {
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' is empty. Skip?", "Invalid mod archive",
+                                                            MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+            return result == MessageBoxResult.OK;
+        }
+
+        if (entries.Length > 1)
+        {
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' contains multiple installable files. " +
+                                                            $"This is not currently supported. Skip?", "Invalid mod archive",
+                                                            MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+            return result == MessageBoxResult.OK;
+        }
+
+        IArchiveEntry entry = entries[0];
+        Stream entryStream = entry.OpenEntryStream();
+        return await InstallFileAsync(entryStream, action, file with
+        {
+            SourceName = Path.GetFileName(entry.Key)!,
+            SourceSize = entry.Size,
+            SourceMd5 = string.Empty
+        });
+    }
+
+    private async Task<bool> InstallFileAsync(Stream content, ModAction action, ModFile modFile)
+    {
+        string tempPath = Path.GetTempFileName();
+        try
+        {
+            using (FileStream writeStream = File.Create(tempPath))
+                await content.CopyToAsync(writeStream);
+
+            string md5 = CryptographyUtil.Md5File(tempPath);
+
+            if (!string.IsNullOrEmpty(modFile.SourceMd5)
+                && !modFile.SourceMd5.Equals(md5, StringComparison.InvariantCulture))
+            {
+                MessageBoxResult result = MessageBox.Show(this, $"'{modFile.SourceName}' does not match its known checksum and is corrupt. Skip?", "Checksum mismatch",
+                                                                MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+                return result == MessageBoxResult.OK;
+            }
+
+            string addonsFolder = _deadlock.GetAddonsPath(_manifest.GamePath);
+            string relativePath;
+
+            if (action.Type is ModActionType.Update)
+            {
+                ArgumentException.ThrowIfNullOrEmpty(modFile.TargetRelativePath);
+                File.Copy(tempPath, Path.Combine(addonsFolder, modFile.TargetRelativePath), overwrite: true);
+
+                relativePath = modFile.TargetRelativePath;
+            }
+            else
+            {
+                relativePath = Path.GetFileName(modFile.SourceName);
+                
+                string fullPath = string.Empty;
+                for (int i = 1; i <= 100; i++)
+                {
+                    fullPath = Path.Combine(addonsFolder, relativePath);
+                    if (!File.Exists(fullPath))
+                        break;
+
+                    relativePath = $"pak{i:D2}_dir.vpk";
+                }
+
+                if (string.IsNullOrEmpty(fullPath))
+                {
+                    MessageBoxResult result = MessageBox.Show(this, $"You have already installed the maximum amount of mods supported by Tome. Skip?", "Maximum mods installed",
+                                                                    MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+                    return result == MessageBoxResult.OK;
+                }
+            }
+
+            File.Copy(tempPath, Path.Combine(addonsFolder, relativePath));
+
+            int modId = action.Mod.Id;
+            if (!_manifest.Mods.TryGetValue(modId, out InstalledMod? mod))
+            {
+                mod = new InstalledMod
+                {
+                    RelativePath = relativePath,
+                    OriginalFileMd5Checksum = md5,
+                };
+            }
+
+            if (!string.IsNullOrEmpty(action.Mod.Name)
+                && !string.IsNullOrEmpty(action.Mod.Author))
+            {
+                mod.ListingMetadata = new ListingMetadata
+                {
+                    Name = action.Mod.Name,
+                    Author = action.Mod.Author,
+                };
+            }
+
+            mod.GamebananaMetadata = !action.Mod.IsLocal
+                ? new GamebananaMetadata
+                {
+                    SubmissionId = modFile.GamebananaSubmission!.Id,
+                    SubmissionType = action.Mod.SubmissionType!,
+                    SubmissionCategoryType = string.Empty,
+                    SubmissionCategoryTree = [],
+                    FileId = modFile.GamebananaFile!.Id,
+                    FileName = modFile.GamebananaFile!.Name,
+                    FileUploadDate = modFile.GamebananaFile!.Added,
+                } : null;
+
+            mod.OriginalFileMd5Checksum = md5;
+            _manifest.Mods[modId] = mod;
+
+            _files.SaveManifest(_manifest);
+            return true;
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) =>

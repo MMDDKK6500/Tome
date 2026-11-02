@@ -38,7 +38,15 @@ internal static class CryptographyUtil
     public static string Md5File(string path)
     {
         using FileStream stream = File.OpenRead(path);
+        return Md5Stream(stream);
+    }
+
+    public static string Md5Stream(Stream stream)
+    {
+        long originalPosition = stream.Position;
         byte[] hashed = MD5.HashData(stream);
+
+        stream.Position = originalPosition;
         return Convert.ToHexStringLower(hashed);
     }
 }

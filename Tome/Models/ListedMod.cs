@@ -81,8 +81,14 @@ public sealed class OnlineModFileModel
 }
 
 public sealed record ModFile(
-    Uri Source, string Md5,
-    string? TargetName, long Size
+    Uri Source,
+    string SourceName,
+    string SourceMd5,
+    long SourceSize,
+
+    string? TargetRelativePath,
+    SubmissionProfile? GamebananaSubmission,
+    SubmissionFile? GamebananaFile
 );
 
 public enum ModActionType
