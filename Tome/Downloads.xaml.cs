@@ -252,6 +252,9 @@ public partial class Downloads : Window
                                 continue;
                         }
 
+                        _manifest.Mods.Remove(action.Mod.Id);
+                        _files.SaveManifest(_manifest);
+
                         File.Delete(filePath);
                         break;
 
@@ -302,7 +305,7 @@ public partial class Downloads : Window
         }
 
         using IArchive archive = ArchiveFactory.OpenArchive(stream);
-        IArchiveEntry[] entries = [.. archive.Entries.Where(static entry => entry.IsDirectory)];
+        IArchiveEntry[] entries = [.. archive.Entries.Where(static entry => !entry.IsDirectory)];
 
         if (entries.Length == 0)
         {
