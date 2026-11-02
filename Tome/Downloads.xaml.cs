@@ -1,4 +1,5 @@
-﻿using GamebananaAPI.Data.Submission;
+﻿using GamebananaAPI.Data.Categories;
+using GamebananaAPI.Data.Submission;
 using Microsoft.Extensions.DependencyInjection;
 using SharpCompress.Archives;
 using SharpCompress.Common;
@@ -371,15 +372,25 @@ public partial class Downloads : Window
                 return result == MessageBoxResult.OK;
             }
 
+            int modId = action.Mod.Id;
             string addonsFolder = _deadlock.GetAddonsPath(_manifest.GamePath);
             string relativePath;
 
             if (action.Type is ModActionType.Update)
             {
                 ArgumentException.ThrowIfNullOrEmpty(modFile.TargetRelativePath);
-                File.Copy(tempPath, Path.Combine(addonsFolder, modFile.TargetRelativePath), overwrite: true);
-
                 relativePath = modFile.TargetRelativePath;
+
+                string existingMd5 = CryptographyUtil.Md5File(Path.Combine(addonsFolder, relativePath));
+                if (!existingMd5.Equals(_manifest.Mods[modId].OriginalFileMd5Checksum, StringComparison.InvariantCulture))
+                {
+                    MessageBoxResult result = MessageBox.Show(this, $"'{action.Mod.Name ?? modFile.TargetRelativePath}' does not match its known checksum. " +
+                                                                    $"You may have edited the mod outside of Tome. Continue with update?", "Checksum mismatch",
+                                                                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                    if (result == MessageBoxResult.No)
+                        return false;
+                }
             }
             else
             {
@@ -406,9 +417,8 @@ public partial class Downloads : Window
                 }
             }
 
-            File.Copy(tempPath, Path.Combine(addonsFolder, relativePath));
+            File.Copy(tempPath, Path.Combine(addonsFolder, relativePath), overwrite: true);
 
-            int modId = action.Mod.Id;
             if (!_manifest.Mods.TryGetValue(modId, out InstalledMod? mod))
             {
                 mod = new InstalledMod
@@ -433,8 +443,9 @@ public partial class Downloads : Window
                 {
                     SubmissionId = modFile.GamebananaSubmission!.Id,
                     SubmissionType = action.Mod.SubmissionType!,
-                    SubmissionCategoryType = string.Empty,
-                    SubmissionCategoryTree = [],
+                    SubmissionCategoryType = modFile.GamebananaSubmission!.Category?.Type,
+                    SubmissionCategoryTree = modFile.GamebananaSubmission!.Category is not null
+                        ? await GetCategoryTreeAsync(modFile.GamebananaSubmission!.Category) : [],
                     FileId = modFile.GamebananaFile!.Id,
                     FileName = modFile.GamebananaFile!.Name,
                     FileUploadDate = modFile.GamebananaFile!.Added,
@@ -450,6 +461,23 @@ public partial class Downloads : Window
         {
             File.Delete(tempPath);
         }
+    }
+
+    private async Task<List<int>> GetCategoryTreeAsync(Category category)
+    {
+        IReadOnlyDictionary<int, CategoryDefinition> results = await _gamebanana.GetFlattenedCategoryDefinitionsAsync(category.Type);
+
+        if (!results.TryGetValue(category.Id, out CategoryDefinition? definition))
+            throw new InvalidDataException("Invalid category ID received from Gamebanana API for submission.");
+
+        List<int> ids = [];
+        do
+        {
+            ids.Insert(0, definition.Id);
+            results.TryGetValue(definition.ParentId, out definition);
+        } while (definition != null);
+        
+        return ids;
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) =>

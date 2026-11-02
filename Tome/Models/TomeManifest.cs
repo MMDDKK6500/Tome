@@ -69,7 +69,7 @@ public sealed class GamebananaMetadata
 
     /// <summary>The Gamebanana submission category.</summary>
     [JsonPropertyName("submissionCategoryType")]
-    public required string SubmissionCategoryType { get; set; }
+    public required string? SubmissionCategoryType { get; set; }
 
     /// <summary>The full Gamebanana submission category (ID) tree.</summary>
     [JsonPropertyName("submissionCategoryTree")]
