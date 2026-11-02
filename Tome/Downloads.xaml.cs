@@ -238,7 +238,10 @@ public partial class Downloads : Window
                         CurrentDownloadText.Text = $"Processing {modName}...";
                         DownloadProgressBar.IsIndeterminate = true;
 
-                        await ProcessDownloadedContentAsync(path, action, file);
+                        if (!await ProcessDownloadedContentAsync(path, action, file))
+                            return false;
+
+                        DownloadProgressBar.IsIndeterminate = false;
                         break;
 
                     case ModActionType.Delete:
