@@ -334,6 +334,15 @@ public partial class Downloads : Window
         }
 
         IArchiveEntry entry = entries[0];
+        if (Path.GetExtension(entry.Key) is not ".vpk")
+        {
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' contains non-vpk files, which are " +
+                                                            $"currently unsupported. Skip?", "Unsupported mod content",
+                                                            MessageBoxButton.OKCancel, MessageBoxImage.Error);
+
+            return result == MessageBoxResult.OK;
+        }
+
         Stream entryStream = entry.OpenEntryStream();
         return await InstallFileAsync(entryStream, action, file with
         {
