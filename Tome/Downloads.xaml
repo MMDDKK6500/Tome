@@ -24,8 +24,11 @@ limitations under the License.
         WindowStyle="None"
         Loaded="Window_Loaded"
         ContentRendered="Window_ContentRendered"
+        BorderThickness="1"
+        BorderBrush="Gray"
         MinHeight="480" MinWidth="640"
         Height="480" Width="640"
+        WindowStartupLocation="CenterOwner"
         Title="Tome: Mod Manager for Deadlock" Background="Beige">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="25"

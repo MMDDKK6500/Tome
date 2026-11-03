@@ -387,7 +387,6 @@ public sealed partial class MainWindow : Window
         bool? result = new Downloads(_pendingActions, _manifest)
         {
             Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
         }.ShowDialog();
 
         if (result != true)
@@ -400,7 +399,10 @@ public sealed partial class MainWindow : Window
 
     private void AddLocalMod_Click(object sender, RoutedEventArgs e)
     {
-        new AddLocalMod().ShowDialog();
+        new AddLocalMod()
+        {
+            Owner = this,
+        }.ShowDialog();
     }
 
     private void InstallToggle_Click(object sender, RoutedEventArgs e)
