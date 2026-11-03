@@ -45,7 +45,7 @@ limitations under the License.
                         <MenuItem Header="Update Game Path" Click="UpdateGamePath_Click"/>
                         <MenuItem Header="Launch Deadlock" Click="LaunchDeadlock_Click"/>
                         <Separator/>
-                        <MenuItem Header="Add Local Mod" Click="MenuItem_Click"/>
+                        <MenuItem Header="Add Local Mod" Click="AddLocalMod_Click"/>
                         <Separator/>
                         <MenuItem Header="Default Filters" Loaded="MenuItem_Loaded">
                             <MenuItem Header="SFW Only" IsCheckable="True" Tag="{x:Static gamebanana:Visibility.Show}" Click="FilterChange_Click"/>

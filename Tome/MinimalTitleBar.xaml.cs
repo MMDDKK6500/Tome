@@ -1,0 +1,42 @@
+﻿// Copyright 2026 URAV ADVANCED LEARNING SYSTEMS PRIVATE LIMITED
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Tome;
+
+public sealed partial class MinimalTitleBar : UserControl
+{
+    public static readonly DependencyProperty TitleProperty =
+        DependencyProperty.Register(
+            nameof(Title),
+            typeof(string),
+            typeof(MinimalTitleBar),
+            new PropertyMetadata("Tome: Mod Manager for Deadlock"));
+
+    public string Title
+    {
+        get => (string)GetValue(TitleProperty);
+        set => SetValue(TitleProperty, value);
+    }
+
+    public MinimalTitleBar()
+    {
+        InitializeComponent();
+    }
+
+    private void Close_Click(object sender, RoutedEventArgs e) =>
+        Window.GetWindow(this).Close();
+}

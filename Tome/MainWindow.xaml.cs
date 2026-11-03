@@ -398,9 +398,9 @@ public sealed partial class MainWindow : Window
         Category_Click(InstalledAndPendingButton, null);
     }
 
-    private void MenuItem_Click(object sender, RoutedEventArgs e)
+    private void AddLocalMod_Click(object sender, RoutedEventArgs e)
     {
-
+        new AddLocalMod().ShowDialog();
     }
 
     private void InstallToggle_Click(object sender, RoutedEventArgs e)
