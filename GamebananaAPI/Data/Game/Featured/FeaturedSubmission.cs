@@ -26,7 +26,7 @@ public class FeaturedSubmissions
     public List<FeaturedSubmission> Submissions { get; set; } = null!;
 
     [JsonPropertyName("_aMetadata")]
-    public SubmissionsMetadata Metadata { get; set; } = null!;
+    public ListMetadata Metadata { get; set; } = null!;
 }
 
 public class FeaturedSubmission

@@ -26,7 +26,7 @@ public class SearchSubmissions
     public List<SearchSubmission> Submissions { get; set; } = null!;
 
     [JsonPropertyName("_aMetadata")]
-    public SubmissionsMetadata Metadata { get; set; } = null!;
+    public ListMetadata Metadata { get; set; } = null!;
 }
 
 public class SearchSubmission

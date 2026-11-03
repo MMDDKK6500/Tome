@@ -14,9 +14,9 @@
 
 using System.Text.Json.Serialization;
 
-namespace GamebananaAPI.Data.Game;
+namespace GamebananaAPI.Data;
 
-public class SubmissionsMetadata
+public class ListMetadata
 {
     [JsonPropertyName("_nRecordCount")]
     public int RecordsCount { get; set; }
