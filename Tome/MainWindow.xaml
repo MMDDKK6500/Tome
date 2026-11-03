@@ -45,6 +45,8 @@ limitations under the License.
                         <MenuItem Header="Update Game Path" Click="UpdateGamePath_Click"/>
                         <MenuItem Header="Launch Deadlock" Click="LaunchDeadlock_Click"/>
                         <Separator/>
+                        <MenuItem Header="Add Local Mod" Click="MenuItem_Click"/>
+                        <Separator/>
                         <MenuItem Header="Default Filters" Loaded="MenuItem_Loaded">
                             <MenuItem Header="SFW Only" IsCheckable="True" Tag="{x:Static gamebanana:Visibility.Show}" Click="FilterChange_Click"/>
                             <MenuItem Header="SFW + Content Warnings" IsCheckable="True" Tag="{x:Static gamebanana:Visibility.Warn}" Click="FilterChange_Click"/>
@@ -80,7 +82,7 @@ limitations under the License.
             </Grid>
 
             <UniformGrid Grid.Row="1" Rows="1" VerticalAlignment="Top" Margin="0,0,0,5" >
-                <local:LockToggleButton Content="Installed" x:Name="InstalledButton" Click="Category_Click" Margin="0,0,1,0"/>
+                <local:LockToggleButton Content="Installed &amp; Pending" x:Name="InstalledAndPendingButton" Click="Category_Click" Margin="0,0,1,0"/>
                 <local:LockToggleButton Content="Featured" x:Name="FeaturedButton" Click="Category_Click" Margin="0,0,1,0"/>
                 <local:LockToggleButton Content="Top Submissions" x:Name="TopSubmissionsButton" Click="Category_Click" Margin="0,0,0,0"/>
             </UniformGrid>

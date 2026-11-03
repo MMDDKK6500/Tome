@@ -168,15 +168,20 @@ public sealed class GamebananaService : IDisposable
             || !remoteFile.Md5Checksum.Equals(installedMod.GamebananaMetadata!.FileMd5Checksum, StringComparison.InvariantCulture);
     }
 
-    public async Task<IEnumerable<ListedMod>> GetInstalledSubmissionsAsync(TomeManifest manifest, ModActions pendingActions)
+    public async Task<IEnumerable<ListedMod>> GetInstalledAndPendingSubmissionsAsync(TomeManifest manifest, ModActions pendingActions)
     {
-        List<ListedMod> list = new(manifest.Mods.Count);
+        Dictionary<int, ListedMod> dict = new(pendingActions
+            .Select(kvp => new KeyValuePair<int, ListedMod>(kvp.Key, kvp.Value.Mod)));
+
         foreach ((int id, InstalledMod mod) in manifest.Mods)
         {
+            if (dict.ContainsKey(id))
+                continue;
+
             if (mod.GamebananaMetadata is GamebananaMetadata gamebanana)
             {
                 SubmissionProfile submission = await GetSubmissionAsync(gamebanana.SubmissionId, gamebanana.SubmissionType);
-                list.Add(await BuildListedModAsync(
+                dict.Add(id, await BuildListedModAsync(
                     id: gamebanana.SubmissionId,
                     submissionType: gamebanana.SubmissionType,
                     isObsolete: submission.IsObsolete,
@@ -191,7 +196,7 @@ public sealed class GamebananaService : IDisposable
                 continue;
             }
 
-            list.Add(await BuildListedModAsync(
+            dict.Add(id, await BuildListedModAsync(
                 id: id,
                 path: mod.RelativePath,
                 isLocal: true,
@@ -203,7 +208,7 @@ public sealed class GamebananaService : IDisposable
             ));
         }
 
-        return list;
+        return dict.Values;
     }
 
     public async Task<IEnumerable<ListedMod>> SearchAsync(string unformattedQuery,

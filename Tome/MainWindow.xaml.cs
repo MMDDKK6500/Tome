@@ -328,8 +328,8 @@ public sealed partial class MainWindow : Window
             RunModsUpdateSafe(() => _gamebanana.GetFeaturedAsync(_manifest.DefaultFilters, _manifest, _pendingActions));
         else if (ReferenceEquals(sender, TopSubmissionsButton))
             RunModsUpdateSafe(() => _gamebanana.GetTopSubmissionsAsync(_manifest.DefaultFilters, _manifest, _pendingActions));
-        else if (ReferenceEquals(sender, InstalledButton))
-            RunModsUpdateSafe(() => _gamebanana.GetInstalledSubmissionsAsync(_manifest, _pendingActions));
+        else if (ReferenceEquals(sender, InstalledAndPendingButton))
+            RunModsUpdateSafe(() => _gamebanana.GetInstalledAndPendingSubmissionsAsync(_manifest, _pendingActions));
     }
 
     private void SetCurrentCategory(LockToggleButton? newChecked)
@@ -394,8 +394,13 @@ public sealed partial class MainWindow : Window
             return;
 
         _pendingActions.Clear();
-        InstalledButton.IsChecked = true;
-        Category_Click(InstalledButton, null);
+        InstalledAndPendingButton.IsChecked = true;
+        Category_Click(InstalledAndPendingButton, null);
+    }
+
+    private void MenuItem_Click(object sender, RoutedEventArgs e)
+    {
+
     }
 
     private void InstallToggle_Click(object sender, RoutedEventArgs e)
