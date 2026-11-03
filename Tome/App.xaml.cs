@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Tome.Services;
 
@@ -29,6 +28,7 @@ public sealed partial class App : Application
         services.AddSingleton<FileService>();
         services.AddSingleton<DeadlockService>();
         services.AddSingleton<GamebananaService>();
+        services.AddSingleton<DeepLinkingService>();
         services.AddSingleton<MainWindow>();
 
         Services = services.BuildServiceProvider();
@@ -38,41 +38,30 @@ public sealed partial class App : Application
     {
         base.OnStartup(e);
 
-        ExtractSubmissionFromArgs(e.Args, out int subId, out string? subType);
-        Services.GetRequiredService<MainWindow>().Show(subId, subType);
+        DeepLinkingService deepLinking = Services.GetRequiredService<DeepLinkingService>();
+        string? link = e.Args.FirstOrDefault();
+
+        if (deepLinking.IsCurrentAppInstance)
+        {
+            DeepLinkingService.ExtractSubmissionFromArgs(link, out int subId, out string? subType);
+            Services.GetRequiredService<MainWindow>().Show(subId, subType);
+            return;
+        }
+
+        try
+        {
+            deepLinking.ForwardDeepLink(link);
+        }
+        finally
+        {
+            Shutdown();
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
         (Services as IDisposable)?.Dispose();
         base.OnExit(e);
-    }
-
-    private bool ExtractSubmissionFromArgs(string[] args,
-        out int submissionId, [NotNullWhen(true)] out string? submissionType)
-    {
-        submissionId = 0;
-        submissionType = null;
-        if (args.Length == 0)
-            return false;
-
-        ReadOnlySpan<char> arg = args[0];
-        if (!arg.StartsWith("tome:"))
-            return false;
-        
-        int subIdStart = arg.LastIndexOf(',');
-        if (subIdStart == -1 || subIdStart == arg.Length - 1)
-            return false;
-
-        int subTypeStart = arg[..subIdStart].LastIndexOf(',');
-        if (subTypeStart == -1 || subTypeStart == subIdStart - 1)
-            return false;
-
-        if (!int.TryParse(arg[(subIdStart + 1)..], out submissionId))
-            return false;
-
-        submissionType = new string(arg[(subTypeStart + 1)..subIdStart]);
-        return submissionType is "Sound" or "Mod";
     }
 }
 

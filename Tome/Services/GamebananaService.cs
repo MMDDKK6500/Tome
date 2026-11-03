@@ -37,6 +37,7 @@ public sealed class GamebananaService : IDisposable
     private static readonly TimeSpan s_searchCacheTime = TimeSpan.FromSeconds(30);
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
+    private bool _disposed;
 
     #region Categories
 
@@ -406,5 +407,12 @@ public sealed class GamebananaService : IDisposable
 
     #endregion
 
-    public void Dispose() => _cache.Dispose();
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _cache.Dispose();
+        _disposed = true;
+    }
 }

@@ -70,15 +70,15 @@ public sealed partial class MainWindow : Window
 
         FilterChange_Click(null, null);
 
-        if (_deeplinkedSub is null)
+        if (_deeplinkedSub is (int deeplinkedSubId, string deeplinkedSubType))
         {
-            FeaturedButton.IsChecked = true;
-            Category_Click(FeaturedButton, null);
+            OpenDeepLink(deeplinkedSubId, deeplinkedSubType);
+            _deeplinkedSub = null;
             return;
         }
 
-        RunModsUpdateSafe(() =>
-            _gamebanana.SearchAsync($"$typeId:{_deeplinkedSub.Value.Type},{_deeplinkedSub.Value.Id}", _manifest.DefaultFilters, _manifest, _pendingActions));
+        FeaturedButton.IsChecked = true;
+        Category_Click(FeaturedButton, null);
     }
 
     protected override void OnClosed(EventArgs e)
@@ -295,17 +295,20 @@ public sealed partial class MainWindow : Window
             return;
 
         e.Handled = true;
-        SearchSafe();
+        SearchSafe(SearchBox.Text);
     }
 
     private void Search_Click(object sender, RoutedEventArgs e) =>
-        SearchSafe();
+        SearchSafe(SearchBox.Text);
 
-    private void SearchSafe()
+    public void OpenDeepLink(int submissionId, string submissionType) =>
+        SearchSafe($"$typeId:{submissionType},{submissionId}");
+
+    private void SearchSafe(string query)
     {
         SetCurrentCategory(null);
         RunModsUpdateSafe(() =>
-            _gamebanana.SearchAsync(SearchBox.Text, _manifest.DefaultFilters, _manifest, _pendingActions));
+            _gamebanana.SearchAsync(query, _manifest.DefaultFilters, _manifest, _pendingActions));
     }
 
     #endregion
