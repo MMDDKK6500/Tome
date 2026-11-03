@@ -239,10 +239,10 @@ public partial class Downloads : Window
             })
         ];
 
-        return await BuiltInFileDialogAsync(message, options)!;
+        return (await BuiltInFileDialogAsync(message, options))!;
     }
 
-    private async Task<SubmissionFile> BuiltInFileDialogAsync(string message, List<OnlineModFileModel> options)
+    private async Task<SubmissionFile?> BuiltInFileDialogAsync(string message, List<OnlineModFileModel> options)
     {
         FileSelectionText.Text = message;
         _fileSelectionTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
