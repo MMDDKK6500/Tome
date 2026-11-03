@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -24,13 +25,16 @@ internal static class ApiClient
         Timeout = TimeSpan.FromSeconds(30)
     };
 
-    internal static async Task<T> GetAsync<T>(Uri path, JsonTypeInfo<T> json, CancellationToken token = default)
+    internal static async Task<T> GetAsync<T>(Uri path, JsonTypeInfo<T> json, CancellationToken token = default, bool _isRetry = false)
     {
         using HttpResponseMessage response = await s_client.GetAsync(path,
             HttpCompletionOption.ResponseHeadersRead, token);
 
         if (!response.IsSuccessStatusCode)
         {
+            if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden) && !_isRetry)
+                return await GetAsync(path, json, token, _isRetry: true);
+
             string body = await response.Content.ReadAsStringAsync(token);
             throw new HttpRequestException($"A HTTP error occurred (code {response.StatusCode}):\n{body}", null, response.StatusCode);
         }
@@ -39,13 +43,16 @@ internal static class ApiClient
             ?? throw new InvalidOperationException("The API returned an empty response");
     }
 
-    internal static async Task<string?> DownloadFileAsync(Uri uri, string outputPath, Action<long>? onProgress = null, CancellationToken token = default)
+    internal static async Task<string?> DownloadFileAsync(Uri uri, string outputPath, Action<long>? onProgress = null, CancellationToken token = default, bool _isRetry = false)
     {
         using HttpResponseMessage response = await s_client.GetAsync(uri,
             HttpCompletionOption.ResponseHeadersRead, token);
 
         if (!response.IsSuccessStatusCode)
         {
+            if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden) && !_isRetry)
+                return await DownloadFileAsync(uri, outputPath, onProgress, token, _isRetry: true);
+
             string body = await response.Content.ReadAsStringAsync(token);
             throw new HttpRequestException($"A HTTP error occurred (code {response.StatusCode}):\n{body}", null, response.StatusCode);
         }
