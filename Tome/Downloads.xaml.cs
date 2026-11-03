@@ -368,11 +368,11 @@ public partial class Downloads : Window
         }
 
         using IArchive archive = ArchiveFactory.OpenArchive(stream);
-        IArchiveEntry[] entries = [.. archive.Entries.Where(static entry => !entry.IsDirectory)];
+        IArchiveEntry[] entries = [.. archive.Entries.Where(static entry => Path.GetExtension(entry.Key) is ".vpk")];
 
         if (entries.Length == 0)
         {
-            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' is empty. Skip?", "Invalid mod archive",
+            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' is empty or contains unsupported files. Skip?", "Invalid mod archive",
                                                             MessageBoxButton.OKCancel, MessageBoxImage.Error);
 
             return result == MessageBoxResult.OK;
@@ -388,15 +388,6 @@ public partial class Downloads : Window
         }
 
         IArchiveEntry entry = entries[0];
-        if (Path.GetExtension(entry.Key) is not ".vpk")
-        {
-            MessageBoxResult result = MessageBox.Show(this, $"'{file.SourceName}' from '{action.Mod.Name ?? file.Source.ToString()}' contains non-vpk files, which are " +
-                                                            $"currently unsupported. Skip?", "Unsupported mod content",
-                                                            MessageBoxButton.OKCancel, MessageBoxImage.Error);
-
-            return result == MessageBoxResult.OK;
-        }
-
         Stream entryStream = entry.OpenEntryStream();
         return await InstallFileAsync(entryStream, action, file with
         {
