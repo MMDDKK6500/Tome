@@ -19,6 +19,7 @@ using GamebananaAPI.Data.Game.Featured;
 using GamebananaAPI.Data.Game.Search;
 using GamebananaAPI.Data.Game.TopSubs;
 using GamebananaAPI.Data.Submission;
+using GamebananaAPI.Data.Submission.Updates;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 using Tome.Models;
@@ -29,11 +30,8 @@ public sealed class GamebananaService : IDisposable
 {
     private const int DeadlockGameId = 20948;
 
-    private static readonly TimeSpan s_topLevelCategoryDefinitionsCacheTime = TimeSpan.FromHours(1);
-    private static readonly TimeSpan s_flatCategoryDefinitionsCacheTime = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan s_categoryDefinitionsCacheTime = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan s_submissionCacheTime = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan s_featuredCacheTime = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan s_topSubmissionsCacheTime = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan s_searchCacheTime = TimeSpan.FromSeconds(30);
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
@@ -58,7 +56,7 @@ public sealed class GamebananaService : IDisposable
                 throw new FormatException("Duplicate category types were returned by Gamebanana APIs.");
         }
 
-        _cache.Set(GetCacheKey(), categoryDefinitions, s_topLevelCategoryDefinitionsCacheTime);
+        _cache.Set(GetCacheKey(), categoryDefinitions, s_categoryDefinitionsCacheTime);
         return categoryDefinitions;
     }
 
@@ -88,7 +86,7 @@ public sealed class GamebananaService : IDisposable
         foreach (CategoryDefinition categoryDefinition in categoryDefinitions)
             AddCategoriesRecursive(flatCategoryDefinitions, categoryDefinition);
 
-        _cache.Set(GetCacheKey(), flatCategoryDefinitions, s_flatCategoryDefinitionsCacheTime);
+        _cache.Set(GetCacheKey(), flatCategoryDefinitions, s_categoryDefinitionsCacheTime);
         return flatCategoryDefinitions;
     }
 
@@ -98,7 +96,7 @@ public sealed class GamebananaService : IDisposable
 
     public async Task<SubmissionProfile> GetSubmissionAsync(int id, string type)
     {
-        string GetCacheKey() => $"submissionProfile:{id}";
+        string GetCacheKey() => $"submissionProfile:{type}:{id}";
 
         if (!_cache.TryGetValue(GetCacheKey(), out SubmissionProfile? profile))
         {
@@ -108,6 +106,19 @@ public sealed class GamebananaService : IDisposable
 
         return profile!.Files is { Count: > 0 }
             ? profile : throw new InvalidOperationException("Cannot use mod with no listed files.");
+    }
+
+    public async Task<SubmissionUpdates?> GetSubmissionUpdatesAsync(int id, string type)
+    {
+        string GetCacheKey() => $"submissionUpdates:{type}:{id}";
+
+        if (!_cache.TryGetValue(GetCacheKey(), out SubmissionUpdates? updates))
+        {
+            updates = await Gamebanana.Submission.UpdatesAsync(id, type);
+            _cache.Set(GetCacheKey(), updates, s_submissionCacheTime);
+        }
+
+        return updates;
     }
 
     public Task<string?> DownloadAsync(Uri uri, string outputPath, Action<long>? onProgress = null) =>
@@ -244,7 +255,7 @@ public sealed class GamebananaService : IDisposable
                 case "$types":
                     includeTypes = param; break;
 
-                case "$^types":
+                case "$-types":
                     excludeTypes = param; break;
 
                 case "$show":
@@ -348,7 +359,7 @@ public sealed class GamebananaService : IDisposable
         if (!_cache.TryGetValue(GetCacheKey(), out IReadOnlyList<TopSubmission>? top))
         {
             top = await Gamebanana.Games.Search.TopSubmissionsAsync(DeadlockGameId);
-            _cache.Set(GetCacheKey(), top, s_topSubmissionsCacheTime);
+            _cache.Set(GetCacheKey(), top, s_submissionCacheTime);
         }
 
         return top!
@@ -382,7 +393,7 @@ public sealed class GamebananaService : IDisposable
         if (!_cache.TryGetValue(GetCacheKey(), out FeaturedSubmissions? featured))
         {
             featured = await Gamebanana.Games.Search.FeaturedAsync(DeadlockGameId);
-            _cache.Set(GetCacheKey(), featured, s_featuredCacheTime);
+            _cache.Set(GetCacheKey(), featured, s_submissionCacheTime);
         }
 
         return featured!.Submissions
