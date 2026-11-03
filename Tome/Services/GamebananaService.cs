@@ -49,7 +49,7 @@ public sealed class GamebananaService : IDisposable
             out IReadOnlyDictionary<string, TopLevelCategoryDefinition>? cachedCategoryDefinitions))
             return cachedCategoryDefinitions!;
 
-        List<TopLevelCategoryDefinition> flatCategoryDefinitions = await Gamebanana.Games.Category.GetCategoryDefinitionsAsync(DeadlockGameId);
+        List<TopLevelCategoryDefinition> flatCategoryDefinitions = await Gamebanana.Games.Category.CategoryDefinitionsAsync(DeadlockGameId);
         Dictionary<string, TopLevelCategoryDefinition> categoryDefinitions = new(flatCategoryDefinitions.Count);
 
         foreach (TopLevelCategoryDefinition categoryDefinition in flatCategoryDefinitions)
@@ -82,7 +82,7 @@ public sealed class GamebananaService : IDisposable
             out IReadOnlyDictionary<int, CategoryDefinition>? cachedCategoryDefinitions))
             return cachedCategoryDefinitions!;
 
-        List<CategoryDefinition> categoryDefinitions = await Gamebanana.Category.GetCategoryDefinitionsAsync(categoryType, DeadlockGameId);
+        List<CategoryDefinition> categoryDefinitions = await Gamebanana.Category.CategoryDefinitionsAsync(categoryType, DeadlockGameId);
         Dictionary<int, CategoryDefinition> flatCategoryDefinitions = [];
 
         foreach (CategoryDefinition categoryDefinition in categoryDefinitions)

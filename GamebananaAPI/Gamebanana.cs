@@ -17,6 +17,7 @@ using GamebananaAPI.Data.Game.Featured;
 using GamebananaAPI.Data.Game.Search;
 using GamebananaAPI.Data.Game.TopSubs;
 using GamebananaAPI.Data.Submission;
+using GamebananaAPI.Data.Submission.Updates;
 using System.Collections.Specialized;
 using System.Web;
 
@@ -30,7 +31,7 @@ public static class Gamebanana
     {
         public static class Category
         {
-            public static async Task<List<TopLevelCategoryDefinition>> GetCategoryDefinitionsAsync(int game, CancellationToken token = default)
+            public static async Task<List<TopLevelCategoryDefinition>> CategoryDefinitionsAsync(int game, CancellationToken token = default)
             {
                 Uri uri = new(BaseUri, $"Game/{game}/CategoryTree");
                 return await ApiClient.GetAsync(uri, CategoryJsonContext.Default.ListTopLevelCategoryDefinition, token);
@@ -100,13 +101,19 @@ public static class Gamebanana
             return await ApiClient.GetAsync(uri, SubmissionJsonContext.Default.SubmissionProfile, token);
         }
 
+        public static async Task<SubmissionUpdates> UpdatesAsync(int submission, string type, CancellationToken token = default)
+        {
+            Uri uri = new(BaseUri, $"{type}/{submission}/Updates");
+            return await ApiClient.GetAsync(uri, SubmissionUpdatesJsonContext.Default.SubmissionUpdates, token);
+        }
+
         public static Task<string?> DownloadFileAsync(Uri uri, string outputPath, Action<long>? onProgress = null, CancellationToken token = default) =>
             ApiClient.DownloadFileAsync(uri, outputPath, onProgress, token);
     }
 
     public static class Category
     {
-        public static async Task<List<CategoryDefinition>> GetCategoryDefinitionsAsync(string categoryType, int game, CancellationToken token = default)
+        public static async Task<List<CategoryDefinition>> CategoryDefinitionsAsync(string categoryType, int game, CancellationToken token = default)
         {
             Uri uri = new(BaseUri, $"Util/{categoryType}/NestedStructure?_idGameRow={game}");
             return await ApiClient.GetAsync(uri, CategoryJsonContext.Default.ListCategoryDefinition, token);

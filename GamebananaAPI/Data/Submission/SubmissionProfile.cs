@@ -142,34 +142,3 @@ public class LicenseChecklist
     [JsonPropertyName("no")]
     public string[]? No { get; set; }
 }
-
-public class SubmissionFile
-{
-    [JsonPropertyName("_idRow")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("_sFile")]
-    public string Name { get; set; } = null!;
-
-    [JsonPropertyName("_sDescription")]
-    public string? Description { get; set; }
-
-    [JsonPropertyName("_sVersion")]
-    public string? Version { get; set; }
-
-    [JsonPropertyName("_nFilesize")]
-    public long Size { get; set; }
-
-    [JsonPropertyName("_tsDateAdded")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
-    public DateTime Added { get; set; }
-
-    [JsonPropertyName("_nDownloadCount")]
-    public int Downloads { get; set; }
-
-    [JsonPropertyName("_sDownloadUrl")]
-    public string DownloadUrl { get; set; } = null!;
-
-    [JsonPropertyName("_sMd5Checksum")]
-    public string Md5Checksum { get; set; } = null!;
-}
