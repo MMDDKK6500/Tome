@@ -40,6 +40,8 @@ public sealed partial class MainWindow : Window
     private MenuItem _defaultFilterMenu = null!;
     private LockToggleButton? _currentCategory = null;
 
+    private (int Id, string Type)? _deeplinkedSub = null;
+
     public MainWindow(FileService files, DeadlockService deadlock, GamebananaService gamebanana)
     {
         InitializeComponent();
@@ -48,6 +50,14 @@ public sealed partial class MainWindow : Window
         _deadlock = deadlock;
         _gamebanana = gamebanana;
         ModsGrid.ItemsSource = _modsList;
+    }
+
+    public void Show(int subId, string? subType)
+    {
+        _deeplinkedSub = !string.IsNullOrEmpty(subType) && subId > 0
+            ? (subId, subType) : null;
+
+        base.Show();
     }
 
     private void Window_ContentRendered(object sender, EventArgs e)
@@ -60,8 +70,15 @@ public sealed partial class MainWindow : Window
 
         FilterChange_Click(null, null);
 
-        FeaturedButton.IsChecked = true;
-        Category_Click(FeaturedButton, null);
+        if (_deeplinkedSub is null)
+        {
+            FeaturedButton.IsChecked = true;
+            Category_Click(FeaturedButton, null);
+            return;
+        }
+
+        RunModsUpdateSafe(() =>
+            _gamebanana.SearchAsync($"$typeId:{_deeplinkedSub.Value.Type},{_deeplinkedSub.Value.Id}", _manifest.DefaultFilters, _manifest, _pendingActions));
     }
 
     protected override void OnClosed(EventArgs e)
