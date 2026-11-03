@@ -75,7 +75,7 @@ public sealed record ModAction(ModActionType Type, ListedMod Mod);
 
 public sealed class OnlineModFileModel
 {
-    public required SubmissionFile File { get; init; }
+    public required SubmissionFile? File { get; init; }
     public required string Text { get; init; }
     public bool IsSelected { get; set; }
 }

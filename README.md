@@ -6,8 +6,8 @@ Contributions are welcome! (although, heavily vibe-coded content is discouraged)
 
 ## Install/Run Tome
 
-This project is still *really* early in development. There's no update checking, skin conflict resolution,
-nor does it support non-vpk mods (like performance configs, or skins with gameinfo overrides like [Kirill Senzu's Yamato](https://gamebanana.com/mods/599927)). There will be breaking changes in updates.
+This project is still *really* early in development. There is no skin conflict resolution,
+and it does not support non-vpk mods (like performance configs, or skins with gameinfo overrides like [Kirill Senzu's Yamato](https://gamebanana.com/mods/599927)). There will be breaking changes in updates.
 
 Tome is not at a stage where I'd distribute installers and exes, so you will have to have the .NET 10 SDK installed.
 My development environment is Visual Studio with the .NET desktop development module (for WPF).

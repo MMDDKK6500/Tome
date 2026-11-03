@@ -70,7 +70,7 @@ public sealed class DeadlockService(FileService fileService)
                 continue;
             }
 
-            if (CryptographyUtil.Md5File(absoluteModPath) != mod.OriginalFileMd5Checksum)
+            if (!CryptographyUtil.Md5File(absoluteModPath).Equals(mod.OriginalFileMd5Checksum, StringComparison.InvariantCulture))
             {
                 problematicMods.TryAdd(mod.RelativePath, $"'{mod.ListingMetadata?.Name ?? mod.RelativePath}' does not match original checksum");
                 continue;

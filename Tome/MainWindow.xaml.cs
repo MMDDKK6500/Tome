@@ -57,7 +57,7 @@ public sealed partial class MainWindow : Window
         _deeplinkedSub = !string.IsNullOrEmpty(subType) && subId > 0
             ? (subId, subType) : null;
 
-        base.Show();
+        Show();
     }
 
     private void Window_ContentRendered(object sender, EventArgs e)

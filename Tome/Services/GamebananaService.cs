@@ -31,8 +31,8 @@ public sealed class GamebananaService : IDisposable
     private const int DeadlockGameId = 20948;
 
     private static readonly TimeSpan s_categoryDefinitionsCacheTime = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan s_submissionCacheTime = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan s_searchCacheTime = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_submissionCacheTime = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan s_searchCacheTime = TimeSpan.FromMinutes(3);
 
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
     private bool _disposed;
@@ -128,7 +128,7 @@ public sealed class GamebananaService : IDisposable
 
     #region Search/Listings
 
-    private ListedMod BuildListedMod(int id,
+    private async Task<ListedMod> BuildListedModAsync(int id,
         TomeManifest manifest, ModActions pendingActions,
         string? submissionType = null, string? path = null,
         bool isObsolete = false, bool isLocal = false,
@@ -149,10 +149,23 @@ public sealed class GamebananaService : IDisposable
                 ? pendingAction!.Type is ModActionType.Install or ModActionType.Update
                 : manifest.Mods.ContainsKey(id),
             HasUpdate: (hasPendingAction && pendingAction!.Type is ModActionType.Update)
-                        || false // TODO!
+                        || (!isLocal && manifest.Mods.ContainsKey(id) && await CheckUpdateAsync(manifest, id, submissionType!))
         ) {
             Update = hasPendingAction && pendingAction!.Type is ModActionType.Update,
         };
+    }
+
+    private async Task<bool> CheckUpdateAsync(TomeManifest manifest, int id, string type)
+    {
+        InstalledMod installedMod = manifest.Mods[id];
+
+        // this doesn't use GetSubmissionUpdatesAsync because an "update" also includes new mod variants,
+        // so if a file is added which is not for the mod variant currently installed, it would show as an update.
+        // instead, this check if the submission's file with the same name has a new hash OR if it has been removed entirely.
+
+        SubmissionProfile submission = await GetSubmissionAsync(id, type);
+        return submission.Files!.FirstOrDefault(file => file.Name == installedMod.GamebananaMetadata!.FileName) is not SubmissionFile remoteFile
+            || !remoteFile.Md5Checksum.Equals(installedMod.GamebananaMetadata!.FileMd5Checksum, StringComparison.InvariantCulture);
     }
 
     public async Task<IEnumerable<ListedMod>> GetInstalledSubmissionsAsync(TomeManifest manifest, ModActions pendingActions)
@@ -163,7 +176,7 @@ public sealed class GamebananaService : IDisposable
             if (mod.GamebananaMetadata is GamebananaMetadata gamebanana)
             {
                 SubmissionProfile submission = await GetSubmissionAsync(gamebanana.SubmissionId, gamebanana.SubmissionType);
-                list.Add(BuildListedMod(
+                list.Add(await BuildListedModAsync(
                     id: gamebanana.SubmissionId,
                     submissionType: gamebanana.SubmissionType,
                     isObsolete: submission.IsObsolete,
@@ -178,7 +191,7 @@ public sealed class GamebananaService : IDisposable
                 continue;
             }
 
-            list.Add(BuildListedMod(
+            list.Add(await BuildListedModAsync(
                 id: id,
                 path: mod.RelativePath,
                 isLocal: true,
@@ -234,7 +247,7 @@ public sealed class GamebananaService : IDisposable
                         throw new NotSupportedException("Unknown or unsupported submission type.");
 
                     SubmissionProfile submission = await GetSubmissionAsync(id, type);
-                    return [BuildListedMod(
+                    return [await BuildListedModAsync(
                         id: submission.Id,
                         submissionType: type,
                         isObsolete: submission.IsObsolete,
@@ -286,9 +299,9 @@ public sealed class GamebananaService : IDisposable
             _cache.Set(GetCacheKey(), submissions, s_searchCacheTime);
         }
 
-        return submissions!.Submissions
+        return await Task.WhenAll(submissions!.Submissions
             .Where(sub => sub.Type is "Sound" or "Mod" && (int)sub.SafeForWork <= (int)visibility && sub.HasFiles)
-            .Select(sub => BuildListedMod(
+            .Select(sub => BuildListedModAsync(
                 id: sub.Id,
                 submissionType: sub.Type,
                 isObsolete: sub.IsObsolete,
@@ -298,7 +311,7 @@ public sealed class GamebananaService : IDisposable
                 likes: sub.Likes,
 
                 manifest: manifest, pendingActions: pendingActions
-            ));
+            )));
     }
 
     public async Task<IEnumerable<ListedMod>> ParseLinkAsync(string link,
@@ -326,7 +339,7 @@ public sealed class GamebananaService : IDisposable
             throw new ArgumentException("Invalid submission ID.");
 
         SubmissionProfile submission = await GetSubmissionAsync(id, type);
-        return [BuildListedMod(
+        return [await BuildListedModAsync(
             id: submission.Id,
             submissionType: type,
             isObsolete: submission.IsObsolete,
@@ -362,10 +375,10 @@ public sealed class GamebananaService : IDisposable
             _cache.Set(GetCacheKey(), top, s_submissionCacheTime);
         }
 
-        return top!
+        return await Task.WhenAll(top!
             .OrderBy(static sub => GetPriority(sub.Period))
             .Where(sub => sub.Type is "Sound" or "Mod" && (int)sub.SafeForWork <= (int)defaultVisibility)
-            .Select(sub => BuildListedMod(
+            .Select(sub => BuildListedModAsync(
                 id: sub.Id,
                 submissionType: sub.Type,
 
@@ -374,7 +387,7 @@ public sealed class GamebananaService : IDisposable
                 likes: sub.Likes,
 
                 manifest: manifest, pendingActions: pendingActions
-            ));
+            )));
     }
 
     public async Task<IEnumerable<ListedMod>> GetFeaturedAsync(Visibility defaultVisibility,
@@ -396,14 +409,14 @@ public sealed class GamebananaService : IDisposable
             _cache.Set(GetCacheKey(), featured, s_submissionCacheTime);
         }
 
-        return featured!.Submissions
+        return await Task.WhenAll(featured!.Submissions
             .OrderBy(static sub =>
                 GetPriority(sub.Featurings
                 .OrderBy(static feat => GetPriority(feat.Group))
                 .ThenByDescending(static feat => feat.Date)
                 .FirstOrDefault()?.Group ?? (FeaturingGroup)int.MaxValue))
             .Where(sub => sub.Type is "Sound" or "Mod" && (int)sub.SafeForWork <= (int)defaultVisibility && sub.HasFiles)
-            .Select(sub => BuildListedMod(
+            .Select(sub => BuildListedModAsync(
                 id: sub.Id,
                 submissionType: sub.Type,
                 isObsolete: sub.IsObsolete,
@@ -413,7 +426,7 @@ public sealed class GamebananaService : IDisposable
                 likes: sub.Likes,
 
                 manifest: manifest, pendingActions: pendingActions
-            ));
+            )));
     }
 
     #endregion

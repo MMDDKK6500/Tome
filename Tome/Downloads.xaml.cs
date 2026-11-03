@@ -93,8 +93,9 @@ public partial class Downloads : Window
 
             foreach ((int id, ModAction action) in _requestedActions)
             {
+                _manifest.Mods.TryGetValue(id, out InstalledMod? registeredMod);
                 string? targetRelativePath = action.Type is ModActionType.Update or ModActionType.Delete
-                    ? _manifest.Mods[id].RelativePath : null;
+                    ? registeredMod!.RelativePath : null;
 
                 ModFile file;
                 FileInfo fileInfo;
@@ -130,9 +131,22 @@ public partial class Downloads : Window
                             return null;
                         }
 
-                        SubmissionFile remoteFile = submission.Files.Count > 1
-                            ? await AskUserForFileAsync(submission)
-                            : submission.Files[0];
+                        SubmissionFile remoteFile;
+                        if (action.Type is ModActionType.Update)
+                        {
+                            SubmissionFile? autoUpdate = submission.Files.FirstOrDefault(file =>
+                                file.Name == registeredMod?.GamebananaMetadata?.FileName);
+
+                            autoUpdate ??= await AskUserForMissingUpdateAsync(submission);
+                            if (autoUpdate is null)
+                                continue;
+
+                            remoteFile = autoUpdate;
+                        }
+                        else if (submission.Files.Count > 1)
+                            remoteFile = await AskUserForFileAsync(submission);
+                        else
+                            remoteFile = submission.Files[0];
 
                         file = new ModFile(
                             Source: new Uri(remoteFile.DownloadUrl),
@@ -147,8 +161,7 @@ public partial class Downloads : Window
                         break;
 
                     case ModActionType.Delete:
-                        InstalledMod registeredMod = _manifest.Mods[id];
-                        string fullPath = Path.Combine(addonsFolder, registeredMod.RelativePath);
+                        string fullPath = Path.Combine(addonsFolder, registeredMod!.RelativePath);
                         fileInfo = new FileInfo(fullPath);
 
                         file = new ModFile(
@@ -194,11 +207,29 @@ public partial class Downloads : Window
         }
     }
 
+    private async Task<SubmissionFile?> AskUserForMissingUpdateAsync(SubmissionProfile submission)
+    {
+        string message = $"'{submission.Name}' does not host the originally installed file anymore. Choose an alternative, or skip updating:";
+        List<OnlineModFileModel> options = [.. submission.Files!.Select(static file =>
+            new OnlineModFileModel()
+            {
+                Text = !string.IsNullOrEmpty(file.Description)
+                            ? $"{file.Name}: {file.Description}" : file.Name,
+                File = file,
+            }).Append(
+            new OnlineModFileModel()
+            {
+                Text = "Skip update",
+                File = null,
+            })
+        ];
+
+        return await BuiltInFileDialogAsync(message, options);
+    }
+
     private async Task<SubmissionFile> AskUserForFileAsync(SubmissionProfile submission)
     {
-        FileSelectionText.Text = $"'{submission.Name}' has multiple files. Choose one to install:";
-        _fileSelectionTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-
+        string message = $"'{submission.Name}' has multiple files. Choose one to install:";
         List<OnlineModFileModel> options = [.. submission.Files!.Select(static file =>
             new OnlineModFileModel()
             {
@@ -207,6 +238,14 @@ public partial class Downloads : Window
                 File = file,
             })
         ];
+
+        return await BuiltInFileDialogAsync(message, options)!;
+    }
+
+    private async Task<SubmissionFile> BuiltInFileDialogAsync(string message, List<OnlineModFileModel> options)
+    {
+        FileSelectionText.Text = message;
+        _fileSelectionTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         options[0].IsSelected = true;
         FileSelectionButtons.ItemsSource = options;
@@ -462,6 +501,7 @@ public partial class Downloads : Window
                         ? await GetCategoryTreeAsync(modFile.GamebananaSubmission!.Category) : [],
                     FileId = modFile.GamebananaFile!.Id,
                     FileName = modFile.GamebananaFile!.Name,
+                    FileMd5Checksum = modFile.GamebananaFile!.Md5Checksum,
                     FileUploadDate = modFile.GamebananaFile!.Added,
                 } : null;
 

@@ -83,6 +83,10 @@ public sealed class GamebananaMetadata
     [JsonPropertyName("fileName")]
     public required string FileName { get; set; }
 
+    /// <summary>The original MD5 file checksum from Gamebanana.</summary>
+    [JsonPropertyName("fileMd5Checksum")]
+    public required string FileMd5Checksum { get; set; }
+
     /// <summary>The date the file was uploaded to Gamebanana.</summary>
     [JsonPropertyName("fileUploadDate")]
     public required DateTime FileUploadDate { get; set; }
