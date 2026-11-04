@@ -36,9 +36,9 @@ public sealed class TomeManifest
     [JsonPropertyName("mods")]
     public Dictionary<int, InstalledMod> Mods { get; set; } = [];
 
-    /// <summary>Installed mod categories which are prone to conflicts, like skins and some model/texture replacements.</summary>
-    [JsonPropertyName("installedConflictableCategories")]
-    public HashSet<int> InstalledConflictableCategories { get; set; } = [];
+    /// <summary>Installed mods which are prone to conflicts, like skins and some model/texture replacements (key: category ID, value: mod IDs).</summary>
+    [JsonPropertyName("installedConflictableMods")]
+    public Dictionary<int, List<int>> InstalledConflictableMods { get; set; } = [];
 }
 
 /// <summary>Entry for an installed mod.</summary>

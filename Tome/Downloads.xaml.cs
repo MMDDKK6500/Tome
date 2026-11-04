@@ -541,9 +541,17 @@ public partial class Downloads : Window
 
     private void RebuildConflictableCategories()
     {
-        HashSet<int> conflictableCategories = [];
+        Dictionary<int, List<int>> conflictableMods = [];
+        void AddMod(int category, int modId)
+        {
+            if (!conflictableMods.TryGetValue(category, out List<int>? mods))
+                mods = [];
 
-        foreach ((_, InstalledMod mod) in _manifest.Mods)
+            mods.Add(modId);
+            conflictableMods[category] = mods;
+        }
+
+        foreach ((int id, InstalledMod mod) in _manifest.Mods)
         {
             if (mod.GamebananaMetadata is not { SubmissionCategoryTree.Count: > 0, SubmissionType: "Mod" })
                 continue;
@@ -556,19 +564,19 @@ public partial class Downloads : Window
                 int category = tree[i];
                 if (s_conflictableChildCategories.Contains(category))
                 {
-                    conflictableCategories.Add(category);
+                    AddMod(category, id);
                     break;
                 }
 
                 if (category is SkinSuperCategory && i < treeLength - 1)
                 {
-                    conflictableCategories.Add(tree[i + 1]);
+                    AddMod(tree[i + 1], id);
                     break;
                 }
             }
         }
 
-        _manifest.InstalledConflictableCategories = conflictableCategories;
+        _manifest.InstalledConflictableMods = conflictableMods;
         _files.SaveManifest(_manifest);
     }
 
