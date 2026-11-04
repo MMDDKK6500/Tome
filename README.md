@@ -31,7 +31,8 @@ Tome will be Windows exclusive, as it uses WPF.
 
 ## Credits
 
-- <https://www.postman.com/s0nought/gb-api-v11/overview> for the Gamebanana API reference.
-- [ValveKeyValue](https://github.com/ValveResourceFormat/ValveKeyValue) for parsing gameinfo.gi
-- [steamlocate-rs](https://github.com/WilliamVenner/steamlocate-rs/) for providing a reference for locating the user's Steam installation
-- [Deadlock Mod Manager](https://github.com/deadlock-mod-manager/deadlock-mod-manager) and [Grimoire Mod Manager](https://github.com/Slush97/grimoire) for providing a reference on how Deadlock patching works
+- <https://www.postman.com/s0nought/gb-api-v11/overview>: Gamebanana API reference.
+- [ValveKeyValue](https://github.com/ValveResourceFormat/ValveKeyValue): for parsing gameinfo.gi
+- [steamlocate-rs](https://github.com/WilliamVenner/steamlocate-rs/): reference for locating the user's Steam installation
+- [InnoDependencyInstaller](https://github.com/DomGries/InnoDependencyInstaller): .NET & WebView installation for installers
+- [Deadlock Mod Manager](https://github.com/deadlock-mod-manager/deadlock-mod-manager) and [Grimoire Mod Manager](https://github.com/Slush97/grimoire): reference on how Deadlock patching works
