@@ -33,7 +33,10 @@ internal static class ApiClient
         if (!response.IsSuccessStatusCode)
         {
             if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden) && !_isRetry)
+            {
+                await Task.Delay(500);
                 return await GetAsync(path, json, token, _isRetry: true);
+            }
 
             string body = await response.Content.ReadAsStringAsync(token);
             throw new HttpRequestException($"A HTTP error occurred (code {response.StatusCode}):\n{body}", null, response.StatusCode);
@@ -51,7 +54,10 @@ internal static class ApiClient
         if (!response.IsSuccessStatusCode)
         {
             if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden) && !_isRetry)
+            {
+                await Task.Delay(500);
                 return await DownloadFileAsync(uri, outputPath, onProgress, token, _isRetry: true);
+            }
 
             string body = await response.Content.ReadAsStringAsync(token);
             throw new HttpRequestException($"A HTTP error occurred (code {response.StatusCode}):\n{body}", null, response.StatusCode);
