@@ -87,7 +87,7 @@ public partial class AddLocalMod : Window
                      "7-Zip Archive (*.7z)|*.7z|" +
                      "All Supported Files (*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z)|*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z|" +
                      "All Files (*.*)|*.*",
-            FilterIndex = 6,
+            FilterIndex = 7,
         };
 
         if (dialog.ShowDialog() == true)
