@@ -211,17 +211,10 @@ public partial class Downloads : Window
     {
         string message = $"'{submission.Name}' does not host the originally installed file anymore. Choose an alternative, or skip updating:";
         List<OnlineModFileModel> options = [.. submission.Files!.Select(static file =>
-            new OnlineModFileModel()
-            {
-                Text = !string.IsNullOrEmpty(file.Description)
-                            ? $"{file.Name}: {file.Description}" : file.Name,
-                File = file,
-            }).Append(
-            new OnlineModFileModel()
-            {
-                Text = "Skip update",
-                File = null,
-            })
+            new OnlineModFileModel(!string.IsNullOrEmpty(file.Description)
+                                        ? $"{file.Name}: {file.Description}" : file.Name, file)
+            ).Append(
+            new OnlineModFileModel("Skip update", null))
         ];
 
         return await BuiltInFileDialogAsync(message, options);
@@ -231,12 +224,9 @@ public partial class Downloads : Window
     {
         string message = $"'{submission.Name}' has multiple files. Choose one to install:";
         List<OnlineModFileModel> options = [.. submission.Files!.Select(static file =>
-            new OnlineModFileModel()
-            {
-                Text = !string.IsNullOrEmpty(file.Description)
-                            ? $"{file.Name}: {file.Description}" : file.Name,
-                File = file,
-            })
+            new OnlineModFileModel(!string.IsNullOrEmpty(file.Description)
+                                        ? $"{file.Name}: {file.Description}" : file.Name, file)
+            )
         ];
 
         return (await BuiltInFileDialogAsync(message, options))!;
@@ -280,14 +270,23 @@ public partial class Downloads : Window
                     case ModActionType.Update:
                     case ModActionType.Install:
                         string modName = action.Mod.Name ?? file.Source.ToString();
-                        CurrentDownloadText.Text = $"Downloading {modName}...";
-                        DownloadProgressBar.Value = 0;
 
-                        string path = Path.GetTempFileName();
-                        tempFiles.Add(path);
+                        string path;
+                        if (file.Source.Scheme is "file")
+                        {
+                            path = file.Source.LocalPath;
+                        }
+                        else
+                        {
+                            CurrentDownloadText.Text = $"Downloading {modName}...";
+                            DownloadProgressBar.Value = 0;
 
-                        string? contentType = await _gamebanana.DownloadAsync(file.Source, path, progress =>
-                            DownloadProgressBar.Value = (double)progress / file.SourceSize);
+                            path = Path.GetTempFileName();
+                            tempFiles.Add(path);
+
+                            await _gamebanana.DownloadAsync(file.Source, path, progress =>
+                                DownloadProgressBar.Value = (double)progress / file.SourceSize);
+                        }
 
                         CurrentDownloadText.Text = $"Processing {modName}...";
                         DownloadProgressBar.IsIndeterminate = true;
@@ -472,8 +471,7 @@ public partial class Downloads : Window
                 };
             }
 
-            if (!string.IsNullOrEmpty(action.Mod.Name)
-                && !string.IsNullOrEmpty(action.Mod.Author))
+            if (!string.IsNullOrEmpty(action.Mod.Name))
             {
                 mod.ListingMetadata = new ListingMetadata
                 {

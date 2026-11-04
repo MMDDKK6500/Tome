@@ -12,14 +12,102 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Win32;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using Tome.Models;
 
 namespace Tome;
 
 public partial class AddLocalMod : Window
 {
-    public AddLocalMod()
+    private readonly TomeManifest _manifest;
+    private readonly ModActions _pendingActions;
+    public (int Id, InstalledMod Mod)? Replacing { get; private set; }
+
+    public AddLocalMod(TomeManifest manifest, ModActions pendingActions)
     {
         InitializeComponent();
+
+        _manifest = manifest;
+        _pendingActions = pendingActions;
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        List<ModReplacing> replacements = new(_manifest.Mods.Count + 1)
+        {
+            new("Replace/update...", 0, null)
+        };
+
+        foreach ((int id, InstalledMod mod) in _manifest.Mods)
+        {
+            if (_pendingActions.TryGetValue(id, out ModAction? pending)
+                && pending.Type is not ModActionType.Update)
+                continue;
+
+            replacements.Add(new ModReplacing(mod.ListingMetadata?.Name ?? mod.RelativePath, id, mod));
+        }
+
+        ModReplacement.ItemsSource = replacements;
+        ModReplacement.SelectedIndex = 0;
+    }
+
+    private void ModReplacement_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems is not { Count: > 0 }
+            || e.AddedItems[0] is not ModReplacing replacing)
+            return;
+
+        Replacing = replacing.Mod is not null
+            ? (replacing.ModId, replacing.Mod) : null;
+    }
+
+    private void Browse_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new()
+        {
+            Title = "Select the mod file/archive",
+            CheckPathExists = true,
+            AddExtension = true,
+            Filter = "Valve Pack (*.vpk)|*.vpk|" +
+                     "RAR Archive (*.rar)|*.rar|" +
+                     "ZIP Archive (*.zip)|*.zip|" +
+                     "TAR Archive (*.tar)|*.tar|" +
+                     "GZip Archive (*.gz)|*.gz|" +
+                     "7-Zip Archive (*.7z)|*.7z|" +
+                     "All Supported Files (*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z)|*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z|" +
+                     "All Files (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog() == true)
+            ModPath.Text = dialog.FileName;
+    }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
+    }
+
+    private void Continue_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(ModName.Text))
+        {
+            MessageBox.Show("Please enter a name for the mod to continue.", "Empty name",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        if (!File.Exists(ModPath.Text))
+        {
+            MessageBox.Show("Please enter a valid path for the mod to continue.", "Invalid path",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        DialogResult = true;
+        Close();
     }
 }

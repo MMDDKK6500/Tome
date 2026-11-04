@@ -399,10 +399,39 @@ public sealed partial class MainWindow : Window
 
     private void AddLocalMod_Click(object sender, RoutedEventArgs e)
     {
-        new AddLocalMod()
+        AddLocalMod localMod = new(_manifest, _pendingActions)
         {
             Owner = this,
-        }.ShowDialog();
+        };
+
+        if (localMod.ShowDialog() != true)
+            return;
+
+        int id = localMod.Replacing?.Id ?? BitConverter.ToInt32(Guid.NewGuid().ToByteArray());
+        bool isUpdate = localMod.Replacing is not null;
+
+        ModActionType actionType = isUpdate
+            ? ModActionType.Update : ModActionType.Install;
+
+        _pendingActions[id] = new ModAction(
+            actionType,
+            new ListedMod(
+                Id: id,
+                SubmissionType: null,
+                Path: localMod.ModPath.Text,
+                IsObsolete: false,
+                IsLocal: true,
+                localMod.ModName.Text,
+                string.IsNullOrEmpty(localMod.ModAuthor.Text) ? null : localMod.ModAuthor.Text,
+                Likes: 0,
+                Install: true,
+                HasUpdate: isUpdate)
+            {
+                Update = isUpdate
+            });
+
+        InstalledAndPendingButton.IsChecked = true;
+        Category_Click(InstalledAndPendingButton, null);
     }
 
     private void InstallToggle_Click(object sender, RoutedEventArgs e)

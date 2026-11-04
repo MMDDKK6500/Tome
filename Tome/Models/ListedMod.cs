@@ -70,13 +70,11 @@ public sealed record ListedMod(
 }
 
 public sealed class ModActions : Dictionary<int, ModAction>;
-
 public sealed record ModAction(ModActionType Type, ListedMod Mod);
 
-public sealed class OnlineModFileModel
+public sealed record ModReplacing(string Text, int ModId, InstalledMod? Mod);
+public sealed record OnlineModFileModel(string Text, SubmissionFile? File)
 {
-    public required SubmissionFile? File { get; init; }
-    public required string Text { get; init; }
     public bool IsSelected { get; set; }
 }
 

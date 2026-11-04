@@ -27,6 +27,7 @@ limitations under the License.
         BorderBrush="Gray"
         WindowStartupLocation="CenterOwner"
         Height="181" Width="400"
+        Loaded="Window_Loaded"
         Title="Install Local Mod" Background="Beige">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="25"
@@ -48,13 +49,13 @@ limitations under the License.
                 <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" Background="LightYellow" Padding="2,2,2,2" Margin="0,0,1,0">
                     <StackPanel Orientation="Vertical">
                         <TextBlock Text="Name"/>
-                        <TextBox/>
+                        <TextBox x:Name="ModName"/>
                     </StackPanel>
                 </Border>
                 <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Background="LightYellow" Padding="2,2,2,2">
                     <StackPanel Orientation="Vertical">
                         <TextBlock Text="Author"/>
-                        <TextBox/>
+                        <TextBox x:Name="ModAuthor"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -69,13 +70,16 @@ limitations under the License.
                             <ColumnDefinition Width="60"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Text="Path to mod..." Grid.Column="0" Margin="0,0,1,0"/>
-                        <Button Grid.Column="1" Content="Browse"/>
+                        <TextBox x:Name="ModPath" Text="Path to mod..." Grid.Column="0" Margin="0,0,1,0"/>
+                        <Button Grid.Column="1" Content="Browse" Click="Browse_Click"/>
                     </Grid>
 
-                    <ComboBox SelectedIndex="0" ToolTip="Select an installed mod to replace with this local mod, or leave unselected.">
-                        <ComboBoxItem Content="Install as new" />
-                        <ComboBoxItem Content="Replace ABCD" />
+                    <ComboBox x:Name="ModReplacement" SelectionChanged="ModReplacement_SelectionChanged" ToolTip="Select an installed mod to replace with this local mod, or leave unselected.">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
             </Border>
@@ -86,8 +90,8 @@ limitations under the License.
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="Cancel" Margin="0,0,1,0"/>
-                <Button Grid.Column="1" Content="Continue"/>
+                <Button Grid.Column="0" Content="Cancel" Click="Cancel_Click" Margin="0,0,1,0"/>
+                <Button Grid.Column="1" Content="Continue" Click="Continue_Click"/>
             </Grid>
         </StackPanel>
     </DockPanel>

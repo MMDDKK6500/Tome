@@ -99,5 +99,5 @@ public sealed class ListingMetadata
     public string Name { get; init; } = string.Empty;
 
     /// <summary>The user-readable name of the mod's author.</summary>
-    public string Author { get; init; } = string.Empty;
+    public string? Author { get; init; } = string.Empty;
 }
