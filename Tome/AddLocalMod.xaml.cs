@@ -38,7 +38,7 @@ public partial class AddLocalMod : Window
     {
         List<ModReplacing> replacements = new(_manifest.Mods.Count + 1)
         {
-            new("Replace/update...", 0, null)
+            new("Install as new", 0, null)
         };
 
         foreach ((int id, InstalledMod mod) in _manifest.Mods)
@@ -60,8 +60,16 @@ public partial class AddLocalMod : Window
             || e.AddedItems[0] is not ModReplacing replacing)
             return;
 
-        Replacing = replacing.Mod is not null
-            ? (replacing.ModId, replacing.Mod) : null;
+        bool isReplacing = replacing.Mod is not null;
+
+        Replacing = isReplacing ? (replacing.ModId, replacing.Mod!) : null;
+        ModName.IsEnabled = ModAuthor.IsEnabled = !isReplacing;
+
+        if (isReplacing)
+        {
+            ModName.Text = replacing.Mod!.ListingMetadata?.Name;
+            ModAuthor.Text = replacing.Mod!.ListingMetadata?.Author;
+        }
     }
 
     private void Browse_Click(object sender, RoutedEventArgs e)
@@ -78,7 +86,8 @@ public partial class AddLocalMod : Window
                      "GZip Archive (*.gz)|*.gz|" +
                      "7-Zip Archive (*.7z)|*.7z|" +
                      "All Supported Files (*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z)|*.vpk;*.rar;*.zip;*.tar;*.gz;*.7z|" +
-                     "All Files (*.*)|*.*"
+                     "All Files (*.*)|*.*",
+            FilterIndex = 6,
         };
 
         if (dialog.ShowDialog() == true)

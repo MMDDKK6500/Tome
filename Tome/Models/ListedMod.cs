@@ -59,7 +59,7 @@ public sealed record ListedMod(
         }
     }
 
-    public bool CanUpdate => Install && !IsLocal && HasUpdate;
+    public bool CanUpdate => Install && HasUpdate;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

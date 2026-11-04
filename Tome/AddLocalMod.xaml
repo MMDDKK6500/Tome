@@ -74,7 +74,7 @@ limitations under the License.
                         <Button Grid.Column="1" Content="Browse" Click="Browse_Click"/>
                     </Grid>
 
-                    <ComboBox x:Name="ModReplacement" SelectionChanged="ModReplacement_SelectionChanged" ToolTip="Select an installed mod to replace with this local mod, or leave unselected.">
+                    <ComboBox x:Name="ModReplacement" SelectionChanged="ModReplacement_SelectionChanged" ToolTip="Optionally install this mod as an update to another mod.">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Text}"/>

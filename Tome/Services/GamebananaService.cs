@@ -134,25 +134,20 @@ public sealed class GamebananaService : IDisposable
         bool isObsolete = false, bool isLocal = false,
         string? name = null, string? author = null, int likes = 0)
     {
-        bool hasPendingAction = pendingActions.TryGetValue(id, out ModAction? pendingAction);
-
-        return new(
-            Id: id,
-            SubmissionType: submissionType,
-            Path: path,
-            IsObsolete: isObsolete,
-            IsLocal: isLocal,
-            Name: name,
-            Author: author,
-            Likes: likes,
-            Install: hasPendingAction
-                ? pendingAction!.Type is ModActionType.Install or ModActionType.Update
-                : manifest.Mods.ContainsKey(id),
-            HasUpdate: (hasPendingAction && pendingAction!.Type is ModActionType.Update)
-                        || (!isLocal && manifest.Mods.ContainsKey(id) && await CheckUpdateAsync(manifest, id, submissionType!))
-        ) {
-            Update = hasPendingAction && pendingAction!.Type is ModActionType.Update,
-        };
+        return pendingActions.TryGetValue(id, out ModAction? pendingAction)
+            ? pendingAction.Mod
+            : new ListedMod(
+                Id: id,
+                SubmissionType: submissionType,
+                Path: path,
+                IsObsolete: isObsolete,
+                IsLocal: isLocal,
+                Name: name,
+                Author: author,
+                Likes: likes,
+                Install: manifest.Mods.ContainsKey(id),
+                HasUpdate: !isLocal && manifest.Mods.ContainsKey(id) && await CheckUpdateAsync(manifest, id, submissionType!)
+            );
     }
 
     private async Task<bool> CheckUpdateAsync(TomeManifest manifest, int id, string type)
