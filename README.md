@@ -21,6 +21,10 @@ The executable will be built at `Tome\bin\Release\net10.0-windows\Tome.exe`.
 
 Tome will be Windows exclusive, as it uses WPF.
 
+## TODO
+
+- Support mods that serve multiple archives which can both be installed (ref. [rabbit graves](https://gamebanana.com/mods/734072))
+
 ## Credits
 
 - <https://www.postman.com/s0nought/gb-api-v11/overview> for the Gamebanana API reference.

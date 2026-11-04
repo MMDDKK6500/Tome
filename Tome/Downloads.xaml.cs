@@ -484,7 +484,8 @@ public partial class Downloads : Window
             else
             {
                 relativePath = Path.GetFileName(modFile.SourceName);
-                
+
+                bool pathFound = false;
                 string fullPath = string.Empty;
                 for (int i = 1; i < 100; i++)
                 {
@@ -492,12 +493,15 @@ public partial class Downloads : Window
                     string fileName = Path.GetFileName(fullPath);
 
                     if (s_vpkMatchRegex.IsMatch(fileName) && !File.Exists(fullPath))
+                    {
+                        pathFound = true;
                         break;
+                    }
 
                     relativePath = $"pak{i:D2}_dir.vpk";
                 }
 
-                if (string.IsNullOrEmpty(fullPath))
+                if (!pathFound)
                 {
                     MessageBoxResult result = MessageBox.Show(this, $"You have already installed the maximum amount of mods supported by Tome. Skip?", "Maximum mods installed",
                                                                     MessageBoxButton.OKCancel, MessageBoxImage.Error);
