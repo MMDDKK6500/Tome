@@ -281,6 +281,34 @@ public partial class Downloads : Window
 
             foreach ((ModAction action, ModFile file) in queue)
             {
+                if (action.Type is ModActionType.Install
+                    && action.Mod.SubmissionType is "Mod"
+                    && file.GamebananaSubmission?.Category is Category category)
+                {
+                    List<int> categoryTree = await GetCategoryTreeAsync(category);
+                    if (FindConflictableCategory(categoryTree, out int conflictableCategory)
+                        && _manifest.InstalledConflictableMods.TryGetValue(conflictableCategory, out List<int>? conflicts))
+                    {
+                        string[] conflictingModNames = [.. conflicts
+                            .Where(modId => !_requestedActions.TryGetValue(modId, out ModAction? action) || action.Type is not ModActionType.Delete)
+                            .Select(modId =>
+                            {
+                                InstalledMod mod = _manifest.Mods[modId];
+                                return mod.ListingMetadata?.Name ?? mod.RelativePath;
+                            })];
+
+                        if (conflictingModNames.Length > 0)
+                        {
+                            MessageBoxResult result = MessageBox.Show(this, $"'{action.Mod.Name}' may conflict with:\n- {string.Join("\n- ", conflictingModNames)}\n\n" +
+                                                                            $"Continue? Please check the author's notes on compatability with other mods.",
+                                                                            "Invalid mod", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                            if (result == MessageBoxResult.No)
+                                continue;
+                        }
+                    }
+                }
+
                 switch (action.Type)
                 {
                     case ModActionType.Update:
@@ -339,6 +367,8 @@ public partial class Downloads : Window
                     default:
                         throw new NotImplementedException($"Case for '{action.Type}' not implemented.");
                 }
+
+                RebuildConflictableCategories();
             }
 
             return true;
@@ -502,8 +532,7 @@ public partial class Downloads : Window
                     SubmissionId = modFile.GamebananaSubmission!.Id,
                     SubmissionType = action.Mod.SubmissionType!,
                     SubmissionCategoryType = modFile.GamebananaSubmission!.Category?.Type,
-                    SubmissionCategoryTree = modFile.GamebananaSubmission!.Category is not null
-                        ? await GetCategoryTreeAsync(modFile.GamebananaSubmission!.Category) : [],
+                    SubmissionCategoryTree = await GetCategoryTreeAsync(modFile.GamebananaSubmission!.Category),
                     FileId = modFile.GamebananaFile!.Id,
                     FileName = modFile.GamebananaFile!.Name,
                     FileMd5Checksum = modFile.GamebananaFile!.Md5Checksum,
@@ -522,8 +551,11 @@ public partial class Downloads : Window
         }
     }
 
-    private async Task<List<int>> GetCategoryTreeAsync(Category category)
+    private async Task<List<int>> GetCategoryTreeAsync(Category? category)
     {
+        if (category is null)
+            return [];
+
         IReadOnlyDictionary<int, CategoryDefinition> results = await _gamebanana.GetFlattenedCategoryDefinitionsAsync(category.Type);
 
         if (!results.TryGetValue(category.Id, out CategoryDefinition? definition))
@@ -542,42 +574,43 @@ public partial class Downloads : Window
     private void RebuildConflictableCategories()
     {
         Dictionary<int, List<int>> conflictableMods = [];
-        void AddMod(int category, int modId)
-        {
-            if (!conflictableMods.TryGetValue(category, out List<int>? mods))
-                mods = [];
-
-            mods.Add(modId);
-            conflictableMods[category] = mods;
-        }
-
         foreach ((int id, InstalledMod mod) in _manifest.Mods)
         {
-            if (mod.GamebananaMetadata is not { SubmissionCategoryTree.Count: > 0, SubmissionType: "Mod" })
+            if (mod.GamebananaMetadata is not { SubmissionType: "Mod", SubmissionCategoryTree.Count: > 0 }
+                || !FindConflictableCategory(mod.GamebananaMetadata.SubmissionCategoryTree, out int category))
                 continue;
 
-            List<int> tree = mod.GamebananaMetadata.SubmissionCategoryTree;
-            int treeLength = tree.Count;
+            if (!conflictableMods.TryGetValue(category, out List<int>? mods))
+                conflictableMods.Add(category, mods = []);
 
-            for (int i = treeLength - 1; i >= 0; i--)
-            {
-                int category = tree[i];
-                if (s_conflictableChildCategories.Contains(category))
-                {
-                    AddMod(category, id);
-                    break;
-                }
-
-                if (category is SkinSuperCategory && i < treeLength - 1)
-                {
-                    AddMod(tree[i + 1], id);
-                    break;
-                }
-            }
+            mods.Add(id);
         }
 
         _manifest.InstalledConflictableMods = conflictableMods;
         _files.SaveManifest(_manifest);
+    }
+
+    private bool FindConflictableCategory(List<int> categoryTree, out int category)
+    {
+        int categoryTreeLength = categoryTree.Count;
+        for (int i = categoryTreeLength - 1; i >= 0; i--)
+        {
+            int currentCategory = categoryTree[i];
+            if (s_conflictableChildCategories.Contains(currentCategory))
+            {
+                category = currentCategory;
+                return true;
+            }
+
+            if (currentCategory is SkinSuperCategory && i < categoryTreeLength - 1)
+            {
+                category = categoryTree[i + 1];
+                return true;
+            }
+        }
+
+        category = 0;
+        return false;
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) =>

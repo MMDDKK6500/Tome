@@ -7,7 +7,6 @@ Contributions are welcome! (although, heavily vibe-coded content is discouraged)
 ## Install/Run Tome
 
 - This project is still *really* early in development.
-- There is no skin conflict resolution.
 - There will be breaking changes in updates.
 
 Tome is not at a stage where I'd distribute installers and exes, so you will have to have the .NET 10 SDK installed.

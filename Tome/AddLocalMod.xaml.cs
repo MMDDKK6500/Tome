@@ -104,15 +104,15 @@ public partial class AddLocalMod : Window
     {
         if (string.IsNullOrEmpty(ModName.Text))
         {
-            MessageBox.Show("Please enter a name for the mod to continue.", "Empty name",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, "Please enter a name for the mod to continue.", "Empty name",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
         if (!File.Exists(ModPath.Text))
         {
-            MessageBox.Show("Please enter a valid path for the mod to continue.", "Invalid path",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, "Please enter a valid path for the mod to continue.", "Invalid path",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 

@@ -158,8 +158,8 @@ public sealed partial class MainWindow : Window
 
         if (dialog.ShowDialog() != true)
         {
-            MessageBox.Show("Your mods were not deleted as the operation was cancelled.",
-                            "Operation cancelled", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "Your mods were not deleted as the operation was cancelled.",
+                                  "Operation cancelled", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -386,8 +386,8 @@ public sealed partial class MainWindow : Window
     {
         if (_pendingActions.Count == 0)
         {
-            MessageBox.Show("There are no pending changes to apply.", "No changes to apply",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, "There are no pending changes to apply.", "No changes to apply",
+                                  MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
