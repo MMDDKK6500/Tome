@@ -24,10 +24,6 @@
     #error Installer name not specified
 #endif
 
-#ifndef RepoLicenseFile
-    #error License file not specified
-#endif
-
 #define DoubleAmp(Value) StringChange(Value, "&", "&&")
 #define EscapeConstArgument(Value) StringChange(StringChange(StringChange(Value, "%", "%25"), ",", "%2c"), "}", "%7d")
 
@@ -49,7 +45,6 @@ ArchitecturesInstallIn64BitMode=x64compatible
 SetupArchitecture=x64
 DefaultGroupName={#AppName}
 AllowNoIcons=yes
-LicenseFile={#RepoLicenseFile}
 PrivilegesRequired=admin
 OutputBaseFilename={#InstallerBaseFileName}
 SetupIconFile={#AppIconPath}
