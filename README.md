@@ -4,13 +4,14 @@ Tome is a bare-bones mod manager for Deadlock, initially inspired by Kerbal Spac
 
 Contributions are welcome! (although, heavily vibe-coded content is discouraged)
 
-## Install/Run Tome
+## Install Tome
 
-- This project is still *really* early in development.
-- There will be breaking changes in updates.
+I consider Tome mostly feature complete for distribution, and am working on getting installers made.
+Meanwhile, you can build it yourself!
 
-Tome is not at a stage where I'd distribute installers and exes, so you will have to have the .NET 10 SDK installed.
-My development environment is Visual Studio with the .NET desktop development module (for WPF).
+## Build Tome
+
+My development environment is Visual Studio with the .NET (10) desktop development module (for WPF).
 
 You can build Tome with:
 ```cmd
@@ -19,11 +20,14 @@ dotnet build -c Release
 
 The executable will be built at `Tome\bin\Release\net10.0-windows\Tome.exe`.
 
+## Platform Support
+
 Tome will be Windows exclusive, as it uses WPF.
 
 ## TODO
 
 - Support mods that serve multiple archives which can both be installed (ref. [rabbit graves](https://gamebanana.com/mods/734072))
+- Maybe support performance config mods which override gameinfo.gi
 
 ## Credits
 
