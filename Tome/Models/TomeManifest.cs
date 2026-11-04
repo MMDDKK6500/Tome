@@ -35,6 +35,10 @@ public sealed class TomeManifest
     /// <summary>All installed mods, keyed by an ID (can be the Gamebanana submission ID or a random value for a local mod).</summary>
     [JsonPropertyName("mods")]
     public Dictionary<int, InstalledMod> Mods { get; set; } = [];
+
+    /// <summary>Installed mod categories which are prone to conflicts, like skins and some model/texture replacements.</summary>
+    [JsonPropertyName("installedConflictableCategories")]
+    public HashSet<int> InstalledConflictableCategories { get; set; } = [];
 }
 
 /// <summary>Entry for an installed mod.</summary>

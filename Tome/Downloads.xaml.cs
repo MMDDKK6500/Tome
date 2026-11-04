@@ -33,6 +33,21 @@ public partial class Downloads : Window
 
     private static readonly Regex s_vpkMatchRegex = VpkMatchRegexGen();
 
+    private const int SkinSuperCategory = 33295;
+    private static readonly HashSet<int> s_conflictableChildCategories = [
+        49852, // Rat King Flag
+        44206, // Hideout
+        44458, // Walker
+        44686, // Midboss
+        44687, // Troopers
+        44688, // Guardian
+        46849, // Sandbox dummy
+        45979, // Rejuv
+        44391, // Sinners
+        41868, // Soul bag
+        41656, // Urn
+    ];
+
     private readonly FileService _files;
     private readonly DeadlockService _deadlock;
     private readonly GamebananaService _gamebanana;
@@ -71,6 +86,7 @@ public partial class Downloads : Window
         }
 
         DialogResult = await ExecuteActionsAsync(actionsQueue);
+        RebuildConflictableCategories();
         Close();
     }
 
@@ -521,6 +537,39 @@ public partial class Downloads : Window
         } while (definition != null);
         
         return ids;
+    }
+
+    private void RebuildConflictableCategories()
+    {
+        HashSet<int> conflictableCategories = [];
+
+        foreach ((_, InstalledMod mod) in _manifest.Mods)
+        {
+            if (mod.GamebananaMetadata is not { SubmissionCategoryTree.Count: > 0, SubmissionType: "Mod" })
+                continue;
+
+            List<int> tree = mod.GamebananaMetadata.SubmissionCategoryTree;
+            int treeLength = tree.Count;
+
+            for (int i = treeLength - 1; i >= 0; i--)
+            {
+                int category = tree[i];
+                if (s_conflictableChildCategories.Contains(category))
+                {
+                    conflictableCategories.Add(category);
+                    break;
+                }
+
+                if (category is SkinSuperCategory && i < treeLength - 1)
+                {
+                    conflictableCategories.Add(tree[i + 1]);
+                    break;
+                }
+            }
+        }
+
+        _manifest.InstalledConflictableCategories = conflictableCategories;
+        _files.SaveManifest(_manifest);
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) =>

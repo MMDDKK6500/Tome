@@ -384,6 +384,9 @@ public sealed partial class MainWindow : Window
 
     private void Apply_Click(object sender, RoutedEventArgs e)
     {
+        if (_pendingActions.Count == 0)
+            return;
+
         bool? result = new Downloads(_pendingActions, _manifest)
         {
             Owner = this,
