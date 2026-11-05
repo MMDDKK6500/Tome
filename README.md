@@ -6,8 +6,64 @@ Contributions are welcome! (although, heavily vibe-coded content is discouraged)
 
 ## Install Tome
 
-I consider Tome mostly feature complete for distribution, and am working on getting installers made.
-Meanwhile, you can build it yourself!
+Tome is published in two variants, both for x64 Windows. Support for x86 and other operating systems is not planned.
+
+Both versions have the same functionality, but defer in dependency management and install size. You can download them from here, or the [Releases](https://github.com/Uralstech/Tome/releases) page:
+
+<a href="https://github.com/Uralstech/Tome/releases/download/1.0.0-preview.1/Tome-Setup-Full-1.0.0-preview.1-x64.exe"><img src="https://img.shields.io/badge/Full-Tome%3A_Windows_x64-black?style=for-the-badge&logo=windows&color=00ADEF"></a>
+
+The "Full" installer includes the .NET 10 Desktop runtime bundled with it, totalling Tome's installed size to ~160mb.
+Recommended if you do not plan on updating Tome frequently.
+
+<a href="https://github.com/Uralstech/Tome/releases/download/1.0.0-preview.1/Tome-Setup-Slim-1.0.0-preview.1-x64.exe"><img src="https://img.shields.io/badge/Slim-Tome%3A_Windows_x64-black?style=for-the-badge&logo=windows&color=00ADEF"></a>
+
+The "Slim" installer uses a shared .NET 10 Desktop runtime which will be installed on your system separate from Tome, making its install size ~20mb.
+Recommended if you already have .NET 10 installed and updated, or if you want to keep up to date on Tome's updates (download sizes will be reduced).
+
+Both versions require Microsoft's WebView2 to render license text from mods, but it is likely already installed if you are on a Windows 10+ computer.
+If the installer will download WebView2 if not detected otherwise.
+
+## TODO
+
+- Support mods that serve multiple archives which can both be installed (ref. [rabbit graves](https://gamebanana.com/mods/734072))
+- Maybe support performance config mods which override gameinfo.gi
+
+## Find Mods
+
+You can search mods by name or view the Featured and Top Submissions feeds from Gamebanana through their respective categories.
+NSFW and content-warning flagged mods are filtered out by default. You can change the filters under `File -> Default Filters`:
+
+- SFW Only (default): hides mods with content warnings or explicitly NSFW content.
+- SFW + Content Warnings: includes warning-labeled mods.
+- All Content: also includes explicitly NSFW mods.
+
+Search queries must be at least three characters long. Tome also accepts the following advanced filters in search queries (do not include square brackets in the actual query):
+
+- `$sort:[new | default | updated]`: sort mods with specified priority
+- `$show:[all | warn | default]`: show all mods including NSFW content (`all`), show SFW mods and mods with content warnings (`warn`), sort using the currently set global filter (`default`)
+- `$types:[Mod | Sound]`: comma separated list of mods to show by type (currently only `Mod` and `Sound` submissions)
+- `$-types:[Mod | Sound]`: comma separated list of mods to *exclude* by type
+- `$typeId:[Mod | Sound],[SubmissionId]`: search for specific mod, by type and unique ID
+- `$link:[GamebananaLink]`: search for specific mod by Gamebanana link
+
+You can select teh `?` button on a listed mod to view more information about it before installing (like licenses).
+
+## Install, Update, and Delete Mods
+
+Just like CKAN, you can click on a listed mod's `Install` checkbox to enqueue it for installation.
+The same applies to the `Update` checkbox, which will only be interactible if an udpate is available.
+
+You can enqueue an already installed mod for deletion by unchecking `Install`.
+All installed and enqueued mods can be viewed under the `Installed & Pending` category.
+
+Tome installs VPK (Valve Pack) files. It can also process ZIP, RAR, TAR, GZip, and 7Z archives that
+contain exactly one VPK file. Non-VPK files in the archive are ignored.
+
+You can install local mods from your computer from `File -> Add Local Mod`. Select a VPK or supported
+archive, give it a name and (optional) author. You can optionally choose replace/update an existing mod
+with the local mod.
+
+Local mods are not checked for conflicts.
 
 ## Build Tome
 
@@ -19,15 +75,6 @@ dotnet build -c Release
 ```
 
 The executable will be built at `Tome\bin\Release\net10.0-windows\Tome.exe`.
-
-## Platform Support
-
-Tome will be Windows exclusive, as it uses WPF.
-
-## TODO
-
-- Support mods that serve multiple archives which can both be installed (ref. [rabbit graves](https://gamebanana.com/mods/734072))
-- Maybe support performance config mods which override gameinfo.gi
 
 ## Credits
 
