@@ -54,7 +54,7 @@ jobs:
         -o ${{ github.workspace }}\publish-slim
     
     - name: Compile Slim Installer
-      uses: Uralstech/Inno-Setup-Action@main
+      uses: Minionguyjpro/Inno-Setup-Action@v1.3.0
       with:
         path: Tome/Installer/Installer.iss
         install_latest: true
@@ -81,7 +81,7 @@ jobs:
         -o ${{ github.workspace }}\publish-full
     
     - name: Compile Full Installer
-      uses: Uralstech/Inno-Setup-Action@main
+      uses: Minionguyjpro/Inno-Setup-Action@v1.3.0
       with:
         path: Tome/Installer/Installer.iss
         install_latest: true
