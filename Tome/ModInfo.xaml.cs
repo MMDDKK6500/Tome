@@ -14,6 +14,9 @@
 
 using GamebananaAPI.Data;
 using GamebananaAPI.Data.Submission;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Web.WebView2.Core;
+using System.IO;
 using System.Windows;
 using Tome.Services;
 
@@ -21,6 +24,8 @@ namespace Tome;
 
 public sealed partial class ModInfo : Window
 {
+    private readonly FileService _files;
+
     private readonly SubmissionProfile _profile;
 
     public ModInfo(SubmissionProfile profile)
@@ -29,13 +34,21 @@ public sealed partial class ModInfo : Window
 
         DataContext = profile;
         _profile = profile;
+
+        _files = App.Services.GetRequiredService<FileService>();
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         try
         {
-            await LicenseWebView.EnsureCoreWebView2Async();
+            string appData = _files.GetSaveDirectory();
+            string webViewDir = Path.Combine(appData, "WebView2");
+            Directory.CreateDirectory(webViewDir);
+
+            CoreWebView2Environment webViewEnv = await CoreWebView2Environment.CreateAsync(userDataFolder: webViewDir);
+
+            await LicenseWebView.EnsureCoreWebView2Async(webViewEnv);
             LicenseWebView.NavigateToString(_profile.LicenseHtml ?? string.Empty);
         }
         catch (Exception ex)
