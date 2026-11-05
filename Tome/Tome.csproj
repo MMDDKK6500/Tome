@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+	<ApplicationIcon>Icon.ico</ApplicationIcon>
 	<Version>1.0.0-preview.1</Version>
 	<AppBuildId>0</AppBuildId>
 	  
@@ -18,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Icon.png" />
+    <Resource Include="Icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

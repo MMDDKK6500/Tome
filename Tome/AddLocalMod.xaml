@@ -28,7 +28,7 @@ limitations under the License.
         WindowStartupLocation="CenterOwner"
         Height="181" Width="400"
         Loaded="Window_Loaded"
-        Title="Tome: Add Local Mod" Background="Beige" Icon="/Icon.png">
+        Title="Tome: Add Local Mod" Background="Beige" Icon="/Icon.ico">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="25"
                       ResizeBorderThickness="4"
