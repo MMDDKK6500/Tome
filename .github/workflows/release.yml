@@ -1,10 +1,6 @@
 name: Release
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Must match Version in Tome/Tome.csproj"
-        required: true
         
 concurrency:
   group: release
@@ -36,7 +32,15 @@ jobs:
         "https://raw.githubusercontent.com/DomGries/InnoDependencyInstaller/refs/heads/master/CodeDependencies.iss"
         -o ${{ github.workspace }}\Tome\Installer\CodeDependencies.iss
 
+    - name: Get Version
+      id: metadata_init
+      shell: pwsh
+      run: |
+        $version = (dotnet msbuild ${{ github.workspace }}\Tome\Tome.csproj -getProperty:Version).Trim()
+        "version=$version" >> $env:GITHUB_OUTPUT
+
     - name: Slim Build
+      shell: pwsh
       run: >
         dotnet publish ${{ github.workspace }}\Tome\Tome.csproj
         -c Release
@@ -55,14 +59,15 @@ jobs:
         path: Tome/Installer/Installer.iss
         install_latest: true
         options: |
-          /DAppVersion=${{ inputs.tag }}
+          /DAppVersion=${{ steps.metadata_init.outputs.version }}
           /DAppBinariesPath=${{ github.workspace }}\publish-slim
           /DAppIconPath=${{ github.workspace }}\Tome\Icon.ico
           /DInstallerOutputFolder=${{ github.workspace }}\installer-slim
-          /DInstallerBaseFileName=Tome-Setup-Slim-${{ inputs.tag }}-x64
+          /DInstallerBaseFileName=Tome-Setup-Slim-${{ steps.metadata_init.outputs.version }}-x64
           /DBinaryType=slim
           
     - name: Full Build
+      shell: pwsh
       run: >
         dotnet publish ${{ github.workspace }}\Tome\Tome.csproj
         -c Release
@@ -81,11 +86,11 @@ jobs:
         path: Tome/Installer/Installer.iss
         install_latest: true
         options: |
-          /DAppVersion=${{ inputs.tag }}
+          /DAppVersion=${{ steps.metadata_init.outputs.version }}
           /DAppBinariesPath=${{ github.workspace }}\publish-full
           /DAppIconPath=${{ github.workspace }}\Tome\Icon.ico
           /DInstallerOutputFolder=${{ github.workspace }}\installer-full
-          /DInstallerBaseFileName=Tome-Setup-Full-${{ inputs.tag }}-x64
+          /DInstallerBaseFileName=Tome-Setup-Full-${{ steps.metadata_init.outputs.version }}-x64
           /DBinaryType=full
       
     - name: Create Release
@@ -93,9 +98,9 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: >
-        gh release create ${{ inputs.tag }}
+        gh release create ${{ steps.metadata_init.outputs.version }}
         ${{ github.workspace }}\installer-slim\*
         ${{ github.workspace }}\installer-full\*
-        --title ${{ inputs.tag }}
+        --title ${{ steps.metadata_init.outputs.version }}
         --generate-notes
         --draft

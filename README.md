@@ -8,19 +8,18 @@ Contributions are welcome! (although, heavily vibe-coded content is discouraged)
 
 Tome is published in two variants, both for x64 Windows. Support for x86 and other operating systems is not planned.
 
-Both versions have the same functionality, but differ in dependency management and install size. You can download them from here, or the [Releases](https://github.com/Uralstech/Tome/releases) page:
+Both versions have the same functionality, but differ in dependency management and install size. You can download them from here, or the [Gamebanana](https://gamebanana.com/tools/24805) page:
 
 <a href="https://github.com/Uralstech/Tome/releases/download/1.0.0-preview.1/Tome-Setup-Full-1.0.0-preview.1-x64.exe"><img src="https://img.shields.io/badge/Full-Tome%3A_Windows_x64-black?style=for-the-badge&logo=windows&color=00ADEF"></a>
 
-The "Full" installer includes the .NET 10 Desktop runtime bundled with it, totalling Tome's installed size to ~160mb.
-Recommended if you do not plan on updating Tome frequently.
+The "Full" installer includes the .NET 10 Desktop runtime, totalling Tome's installed size to ~160mb. Recommended if you do not plan on updating Tome frequently.
 
 <a href="https://github.com/Uralstech/Tome/releases/download/1.0.0-preview.1/Tome-Setup-Slim-1.0.0-preview.1-x64.exe"><img src="https://img.shields.io/badge/Slim-Tome%3A_Windows_x64-black?style=for-the-badge&logo=windows&color=00ADEF"></a>
 
-The "Slim" installer uses a shared .NET 10 Desktop runtime which will be installed on your system separate from Tome, making its install size ~20mb.
-Recommended if you already have .NET 10 installed and updated, or if you want to keep up to date on Tome's updates (download sizes will be reduced).
+The "Slim" installer uses a shared .NET 10 Desktop runtime that is installed on your system separate from Tome, making its installed size ~20mb.
+Recommended if you already have the runtime installed and updated, or if you want to keep up to date on Tome's updates (download sizes will be reduced).
 
-Both versions require Microsoft's WebView2 to render license text from mods, but it is likely already installed if you are on a Windows 10+ computer.
+Both versions require Microsoft's WebView2 to render license text from mods, but most Windows 10 and all Windows 11 computers have it built-in.
 Both installers will download WebView2 if not detected otherwise.
 
 ## TODO
@@ -67,18 +66,16 @@ Local mods are not checked for conflicts.
 
 ## Build Tome
 
-My development environment is Visual Studio with the .NET (10) desktop development module (for WPF).
+My development environment is Visual Studio with the .NET (10) desktop development module.
 
 You can build Tome with:
 ```cmd
-dotnet build -c Release
+dotnet build Tome\Tome.csproj
 ```
-
-The executable will be built at `Tome\bin\Release\net10.0-windows\Tome.exe`.
 
 ## Credits
 
-- <https://www.postman.com/s0nought/gb-api-v11/overview>: Gamebanana API reference.
+- [s0nought/gb-api-v11](https://www.postman.com/s0nought/gb-api-v11/overview): Gamebanana API reference.
 - [ValveKeyValue](https://github.com/ValveResourceFormat/ValveKeyValue): for parsing gameinfo.gi
 - [steamlocate-rs](https://github.com/WilliamVenner/steamlocate-rs/): reference for locating the user's Steam installation
 - [InnoDependencyInstaller](https://github.com/DomGries/InnoDependencyInstaller): .NET & WebView installation for installers
