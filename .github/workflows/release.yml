@@ -43,6 +43,10 @@ jobs:
         -r win-x64
         --self-contained false
         -p:PublishReadyToRun=true
+        -p:DebugType=None
+        -p:DebugSymbols=False
+        -p:IncludeSymbols=False
+        -p:SatelliteResourceLanguages=en
         -o ${{ github.workspace }}\publish-slim
     
     - name: Compile Slim Installer
@@ -65,6 +69,10 @@ jobs:
         -r win-x64
         --self-contained true
         -p:PublishReadyToRun=true
+        -p:DebugType=None
+        -p:DebugSymbols=False
+        -p:IncludeSymbols=False
+        -p:SatelliteResourceLanguages=en
         -o ${{ github.workspace }}\publish-full
     
     - name: Compile Full Installer
@@ -90,3 +98,4 @@ jobs:
         ${{ github.workspace }}\installer-full\*
         --title ${{ inputs.tag }}
         --generate-notes
+        --draft
