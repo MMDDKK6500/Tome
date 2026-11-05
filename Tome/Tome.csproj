@@ -29,8 +29,8 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
-    <PackageReference Include="SharpCompress" Version="0.50.7" />
-    <PackageReference Include="ValveKeyValue" Version="0.73.0.538" />
+    <PackageReference Include="SharpCompress" Version="0.50.8" />
+    <PackageReference Include="ValveKeyValue" Version="0.80.0.542" />
   </ItemGroup>
 
   <ItemGroup>
