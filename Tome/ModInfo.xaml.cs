@@ -16,6 +16,7 @@ using GamebananaAPI.Data;
 using GamebananaAPI.Data.Submission;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.Core;
+using System.Drawing;
 using System.IO;
 using System.Windows;
 using Tome.Services;
@@ -49,6 +50,8 @@ public sealed partial class ModInfo : Window
             CoreWebView2Environment webViewEnv = await CoreWebView2Environment.CreateAsync(userDataFolder: webViewDir);
 
             await LicenseWebView.EnsureCoreWebView2Async(webViewEnv);
+            LicenseWebView.DefaultBackgroundColor = Color.Transparent;
+
             LicenseWebView.NavigateToString(_profile.LicenseHtml ?? string.Empty);
         }
         catch (Exception ex)
