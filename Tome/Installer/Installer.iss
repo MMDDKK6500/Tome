@@ -82,7 +82,7 @@ end;
 
 [Registry]
 Root: HKA; Subkey: "Software\Classes\Tome"; ValueType: string; ValueName: ""; ValueData: "URL:tome"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\Tome"; ValueType: none; ValueName: "URL Protocol"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Tome"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Tome\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey
 
 [Icons]
