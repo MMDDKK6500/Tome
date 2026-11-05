@@ -68,7 +68,7 @@ jobs:
         -o ${{ github.workspace }}\publish-full
     
     - name: Compile Full Installer
-      uses: Minionguyjpro/Inno-Setup-Action@v1
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
       with:
         path: Tome/Installer/Installer.iss
         install_latest: true
