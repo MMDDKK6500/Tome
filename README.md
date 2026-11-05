@@ -35,4 +35,5 @@ Tome will be Windows exclusive, as it uses WPF.
 - [ValveKeyValue](https://github.com/ValveResourceFormat/ValveKeyValue): for parsing gameinfo.gi
 - [steamlocate-rs](https://github.com/WilliamVenner/steamlocate-rs/): reference for locating the user's Steam installation
 - [InnoDependencyInstaller](https://github.com/DomGries/InnoDependencyInstaller): .NET & WebView installation for installers
+- [Inno-Setup-Action](https://github.com/Minionguyjpro/Inno-Setup-Action): Inno Setup for GitHub actions
 - [Deadlock Mod Manager](https://github.com/deadlock-mod-manager/deadlock-mod-manager) and [Grimoire Mod Manager](https://github.com/Slush97/grimoire): reference on how Deadlock patching works

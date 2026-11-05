@@ -9,7 +9,7 @@
 #endif
 
 #ifndef AppExeName
-    #error Executable name not specified
+    #define AppExeName "Tome.exe"
 #endif
 
 #ifndef AppBinariesPath
@@ -22,6 +22,10 @@
 
 #ifndef InstallerBaseFileName
     #error Installer name not specified
+#endif
+
+#ifndef InstallerOutputFolder
+    #error Installer output folder not specified
 #endif
 
 #define DoubleAmp(Value) StringChange(Value, "&", "&&")
@@ -46,6 +50,7 @@ SetupArchitecture=x64
 DefaultGroupName={#AppName}
 AllowNoIcons=yes
 PrivilegesRequired=admin
+OutputDir={#InstallerOutputFolder}
 OutputBaseFilename={#InstallerBaseFileName}
 SetupIconFile={#AppIconPath}
 SolidCompression=yes

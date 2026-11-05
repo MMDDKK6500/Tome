@@ -1,0 +1,92 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Must match Version in Tome/Tome.csproj"
+        required: true
+        
+concurrency:
+  group: release
+  cancel-in-progress: true
+  
+jobs:
+  publish:
+    permissions:
+      contents: write
+      id-token: write
+    runs-on: windows-latest
+    steps:
+    
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ github.ref }}
+        fetch-depth: 0
+
+    - name: Dotnet Setup
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.x
+      
+    - name: Download InnoDependencyInstaller
+      shell: pwsh
+      run: >
+        curl.exe -L
+        "https://raw.githubusercontent.com/DomGries/InnoDependencyInstaller/refs/heads/master/CodeDependencies.iss"
+        -o ${{ github.workspace }}\Tome\Installer\CodeDependencies.iss
+
+    - name: Slim Build
+      run: >
+        dotnet publish ${{ github.workspace }}\Tome\Tome.csproj
+        -c Release
+        -r win-x64
+        --self-contained false
+        -p:PublishReadyToRun=true
+        -o ${{ github.workspace }}\publish-slim
+    
+    - name: Compile Slim Installer
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
+      with:
+        path: Tome/Installer/Installer.iss
+        install_latest: true
+        options: |
+          /DAppVersion=${{ inputs.tag }}
+          /DAppBinariesPath=${{ github.workspace }}\publish-slim
+          /DAppIconPath=${{ github.workspace }}\Tome\Icon.ico
+          /DInstallerOutputFolder=${{ github.workspace }}\installer-slim
+          /DInstallerBaseFileName=Tome-Setup-Slim-${{ inputs.tag }}-x64
+          /DBinaryType=slim
+          
+    - name: Full Build
+      run: >
+        dotnet publish ${{ github.workspace }}\Tome\Tome.csproj
+        -c Release
+        -r win-x64
+        --self-contained true
+        -p:PublishReadyToRun=true
+        -o ${{ github.workspace }}\publish-full
+    
+    - name: Compile Full Installer
+      uses: Minionguyjpro/Inno-Setup-Action@v1
+      with:
+        path: Tome/Installer/Installer.iss
+        install_latest: true
+        options: |
+          /DAppVersion=${{ inputs.tag }}
+          /DAppBinariesPath=${{ github.workspace }}\publish-full
+          /DAppIconPath=${{ github.workspace }}\Tome\Icon.ico
+          /DInstallerOutputFolder=${{ github.workspace }}\installer-full
+          /DInstallerBaseFileName=Tome-Setup-Full-${{ inputs.tag }}-x64
+          /DBinaryType=full
+      
+    - name: Create Release
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: >
+        gh release create ${{ inputs.tag }}
+        ${{ github.workspace }}\installer-slim\*
+        ${{ github.workspace }}\installer-full\*
+        --title ${{ inputs.tag }}
+        --generate-notes
