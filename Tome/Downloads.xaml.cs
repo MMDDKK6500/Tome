@@ -291,11 +291,7 @@ public partial class Downloads : Window
                     {
                         string[] conflictingModNames = [.. conflicts
                             .Where(modId => !_requestedActions.TryGetValue(modId, out ModAction? action) || action.Type is not ModActionType.Delete)
-                            .Select(modId =>
-                            {
-                                InstalledMod mod = _manifest.Mods[modId];
-                                return mod.ListingMetadata?.Name ?? mod.RelativePath;
-                            })];
+                            .Select(modId => _manifest.Mods[modId].ReadableName)];
 
                         if (conflictingModNames.Length > 0)
                         {

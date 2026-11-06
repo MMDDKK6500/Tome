@@ -47,7 +47,7 @@ public partial class AddLocalMod : Window
                 && pending.Type is not ModActionType.Update)
                 continue;
 
-            replacements.Add(new ModReplacing(mod.ListingMetadata?.Name ?? mod.RelativePath, id, mod));
+            replacements.Add(new ModReplacing(mod.ReadableName, id, mod));
         }
 
         ModReplacement.ItemsSource = replacements;

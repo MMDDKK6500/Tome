@@ -14,7 +14,7 @@
 
 namespace Tome.Models;
 
-public sealed class ManifestVerificationFailures
-{
-    public required IReadOnlyDictionary<string, string> ProblematicMods { get; set; }
-}
+public sealed record ManifestVerificationFailures(
+    IReadOnlySet<string> RelativePaths,
+    string Message
+);

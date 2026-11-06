@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using Tome.Models;
 using ValveKeyValue;
 
@@ -52,7 +53,9 @@ public sealed class DeadlockService(FileService fileService)
         Uri baseUri = new(safeAddonsPath);
 
         HashSet<string> allModPathsRelative = [];
-        Dictionary<string, string> problematicMods = [];
+        HashSet<string> problematicModPathsRelative = [];
+        StringBuilder messageBuilder = new();
+
         foreach ((_, InstalledMod mod) in manifest.Mods)
         {
             allModPathsRelative.Add(mod.RelativePath);
@@ -60,19 +63,22 @@ public sealed class DeadlockService(FileService fileService)
             string absoluteModPath = Path.GetFullPath(Path.Combine(safeAddonsPath, mod.RelativePath));
             if (!baseUri.IsBaseOf(new Uri(absoluteModPath)))
             {
-                problematicMods.TryAdd(mod.RelativePath, $"'{mod.ListingMetadata?.Name ?? mod.RelativePath}' is outside {safeAddonsPath}");
+                problematicModPathsRelative.Add(mod.RelativePath);
+                messageBuilder.AppendLine($"- '{mod.ReadableName}' is outside {safeAddonsPath}");
                 continue;
             }
 
             if (!File.Exists(absoluteModPath))
             {
-                problematicMods.TryAdd(mod.RelativePath, $"'{mod.ListingMetadata?.Name ?? ""}' is missing at path: {absoluteModPath}");
+                problematicModPathsRelative.Add(mod.RelativePath);
+                messageBuilder.AppendLine($"- '{mod.ReadableName}' is missing at path: {absoluteModPath}");
                 continue;
             }
 
             if (!CryptographyUtil.Md5File(absoluteModPath).Equals(mod.OriginalFileMd5Checksum, StringComparison.InvariantCulture))
             {
-                problematicMods.TryAdd(mod.RelativePath, $"'{mod.ListingMetadata?.Name ?? mod.RelativePath}' does not match original checksum");
+                problematicModPathsRelative.Add(mod.RelativePath);
+                messageBuilder.AppendLine($"- '{mod.ReadableName}' does not match original checksum");
                 continue;
             }
         }
@@ -81,16 +87,18 @@ public sealed class DeadlockService(FileService fileService)
         {
             string relativePath = Path.GetRelativePath(safeAddonsPath, absolutePath);
             if (!allModPathsRelative.Contains(relativePath))
-                problematicMods.TryAdd(relativePath, $"Unknown/unregistered mod at path: {absolutePath}");
+            {
+                problematicModPathsRelative.Add(relativePath);
+                messageBuilder.AppendLine($"- Unknown/unregistered mod at path: {absolutePath}");
+            }
         }
 
-        if (problematicMods.Count > 0)
+        if (problematicModPathsRelative.Count > 0)
         {
-            failures = new ManifestVerificationFailures()
-            {
-                ProblematicMods = problematicMods
-            };
-
+            failures = new ManifestVerificationFailures(
+                problematicModPathsRelative,
+                messageBuilder.ToString()
+            );
             return false;
         }
 
@@ -110,8 +118,7 @@ public sealed class DeadlockService(FileService fileService)
         using (FileStream zipToOpen = new(backupZip, FileMode.Create))
         using (ZipArchive archive = new(zipToOpen, ZipArchiveMode.Create))
         {
-            HashSet<string> problematicModPathsRelative = [.. failures.ProblematicMods.Keys];
-            foreach (string problematicModPathRelative in problematicModPathsRelative)
+            foreach (string problematicModPathRelative in failures.RelativePaths)
             {
                 string absoluteModPath = Path.GetFullPath(Path.Combine(safeAddonsPath, problematicModPathRelative));
                 if (!File.Exists(absoluteModPath))
@@ -127,7 +134,7 @@ public sealed class DeadlockService(FileService fileService)
 
             foreach ((int key, InstalledMod mod) in new List<KeyValuePair<int, InstalledMod>>(manifest.Mods))
             {
-                if (problematicModPathsRelative.Contains(mod.RelativePath))
+                if (failures.RelativePaths.Contains(mod.RelativePath))
                     manifest.Mods.Remove(key);
             }
         }

@@ -133,8 +133,8 @@ public sealed partial class MainWindow : Window
         if (_deadlock.VerifyManifest(_manifest, out ManifestVerificationFailures? failures))
             return;
 
-        MessageBoxResult result = MessageBox.Show(this, $"Multiple warnings while verifying mod list:\n- {string.Join("\n- ", failures.ProblematicMods.Values)}" +
-                                                        $"\n\nThis may cause incorrect mod loading and create conflicts. Delete all problematic mods? " +
+        MessageBoxResult result = MessageBox.Show(this, $"Multiple warnings while verifying mod list:\n{failures.Message}" +
+                                                        $"\nThis may cause incorrect mod loading and create conflicts. Delete all problematic mods? " +
                                                         $"Problematic mods detected to be *outside* of the game's managed \\addons directory will not be deleted.",
                                                         "Failed mod list verification", MessageBoxButton.YesNo, MessageBoxImage.Error);
 

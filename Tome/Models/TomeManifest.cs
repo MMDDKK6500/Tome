@@ -59,6 +59,9 @@ public sealed class InstalledMod
     /// <summary>Optional metadata that may be displayed in Tome's GUI.</summary>
     [JsonPropertyName("listingMetadata")]
     public ListingMetadata? ListingMetadata { get; set; }
+
+    [JsonIgnore]
+    public string ReadableName => ListingMetadata?.Name ?? RelativePath;
 }
 
 public sealed class GamebananaMetadata
