@@ -16,25 +16,18 @@ using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data.Submission;
 
-[JsonSerializable(typeof(SubmissionProfile))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class SubmissionJsonContext : JsonSerializerContext;
-
 public class SubmissionProfile
 {
     [JsonPropertyName("_idRow")]
     public int Id { get; set; }
 
     [JsonPropertyName("_tsDateAdded")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
     public DateTime Added { get; set; }
 
     [JsonPropertyName("_tsDateModified")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
     public DateTime? Modified { get; set; }
 
     [JsonPropertyName("_tsDateUpdated")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
     public DateTime? Updated { get; set; }
 
     [JsonPropertyName("_sName")]

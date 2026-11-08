@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using GamebananaAPI.Data;
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace GamebananaAPI;
 
@@ -25,7 +25,7 @@ internal static class ApiClient
         Timeout = TimeSpan.FromSeconds(30)
     };
 
-    internal static async Task<T> GetAsync<T>(Uri path, JsonTypeInfo<T> json, CancellationToken token = default, bool _isRetry = false)
+    internal static async Task<T> GetAsync<T>(Uri path, CancellationToken token = default, bool _isRetry = false)
     {
         using HttpResponseMessage response = await s_client.GetAsync(path,
             HttpCompletionOption.ResponseHeadersRead, token);
@@ -35,14 +35,14 @@ internal static class ApiClient
             if (response.StatusCode is not (HttpStatusCode.NotFound or HttpStatusCode.Forbidden) && !_isRetry)
             {
                 await Task.Delay(500);
-                return await GetAsync(path, json, token, _isRetry: true);
+                return await GetAsync<T>(path, token, _isRetry: true);
             }
 
             string body = await response.Content.ReadAsStringAsync(token);
             throw new HttpRequestException($"A HTTP error occurred (code {response.StatusCode}):\n{body}", null, response.StatusCode);
         }
 
-        return await response.Content.ReadFromJsonAsync(json, token)
+        return await response.Content.ReadFromJsonAsync<T>(GamebananaJson.Default.Options, token)
             ?? throw new InvalidOperationException("The API returned an empty response");
     }
 

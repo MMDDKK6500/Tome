@@ -12,10 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using GamebananaAPI.Data.Categories;
+using GamebananaAPI.Data.Game.Featured;
+using GamebananaAPI.Data.Game.Search;
+using GamebananaAPI.Data.Game.TopSubs;
+using GamebananaAPI.Data.Submission;
+using GamebananaAPI.Data.Submission.Updates;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data;
+
+[JsonSerializable(typeof(List<TopLevelCategoryDefinition>))]
+[JsonSerializable(typeof(List<CategoryDefinition>))]
+[JsonSerializable(typeof(FeaturedSubmissions))]
+[JsonSerializable(typeof(SearchSubmissions))]
+[JsonSerializable(typeof(List<TopSubmission>))]
+[JsonSerializable(typeof(SubmissionProfile))]
+[JsonSerializable(typeof(SubmissionUpdates))]
+[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata,
+                             Converters = [typeof(UnixDateTimeConverter)])]
+internal sealed partial class GamebananaJson : JsonSerializerContext;
 
 internal sealed class UnixDateTimeConverter : JsonConverter<DateTime>
 {

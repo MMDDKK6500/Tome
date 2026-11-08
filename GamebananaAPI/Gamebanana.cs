@@ -34,7 +34,7 @@ public static class Gamebanana
             public static async Task<List<TopLevelCategoryDefinition>> CategoryDefinitionsAsync(int game, CancellationToken token = default)
             {
                 Uri uri = new(BaseUri, $"Game/{game}/CategoryTree");
-                return await ApiClient.GetAsync(uri, CategoryJsonContext.Default.ListTopLevelCategoryDefinition, token);
+                return await ApiClient.GetAsync<List<TopLevelCategoryDefinition>>(uri, token);
             }
         }
 
@@ -43,7 +43,7 @@ public static class Gamebanana
             public static async Task<List<TopSubmission>> TopSubmissionsAsync(int game, CancellationToken token = default)
             {
                 Uri uri = new(BaseUri, $"Game/{game}/TopSubs");
-                return await ApiClient.GetAsync(uri, GameTopSubsJsonContext.Default.ListTopSubmission, token);
+                return await ApiClient.GetAsync<List<TopSubmission>>(uri, token);
             }
 
             public static async Task<FeaturedSubmissions> FeaturedAsync(int game, int page = 1, CancellationToken token = default)
@@ -57,7 +57,7 @@ public static class Gamebanana
 
                 uriBuilder.Query = queryParams.ToString();
 
-                return await ApiClient.GetAsync(uriBuilder.Uri, GameFeaturedJsonContext.Default.FeaturedSubmissions, token);
+                return await ApiClient.GetAsync<FeaturedSubmissions>(uriBuilder.Uri, token);
             }
 
             public static async Task<SearchSubmissions> SearchAsync(int game, string query,
@@ -88,7 +88,7 @@ public static class Gamebanana
 
                 uriBuilder.Query = queryParams.ToString();
 
-                return await ApiClient.GetAsync(uriBuilder.Uri, GameSearchJsonContext.Default.SearchSubmissions, token);
+                return await ApiClient.GetAsync<SearchSubmissions>(uriBuilder.Uri, token);
             }
         }
     }
@@ -98,13 +98,13 @@ public static class Gamebanana
         public static async Task<SubmissionProfile> PropertiesAsync(int submission, string type, CancellationToken token = default)
         {
             Uri uri = new(BaseUri, $"{type}/{submission}/ProfilePage");
-            return await ApiClient.GetAsync(uri, SubmissionJsonContext.Default.SubmissionProfile, token);
+            return await ApiClient.GetAsync<SubmissionProfile>(uri, token);
         }
 
         public static async Task<SubmissionUpdates> UpdatesAsync(int submission, string type, CancellationToken token = default)
         {
             Uri uri = new(BaseUri, $"{type}/{submission}/Updates");
-            return await ApiClient.GetAsync(uri, SubmissionUpdatesJsonContext.Default.SubmissionUpdates, token);
+            return await ApiClient.GetAsync<SubmissionUpdates>(uri, token);
         }
 
         public static Task<string?> DownloadFileAsync(Uri uri, string outputPath, Action<long>? onProgress = null, CancellationToken token = default) =>
@@ -116,7 +116,7 @@ public static class Gamebanana
         public static async Task<List<CategoryDefinition>> CategoryDefinitionsAsync(string categoryType, int game, CancellationToken token = default)
         {
             Uri uri = new(BaseUri, $"Util/{categoryType}/NestedStructure?_idGameRow={game}");
-            return await ApiClient.GetAsync(uri, CategoryJsonContext.Default.ListCategoryDefinition, token);
+            return await ApiClient.GetAsync<List<CategoryDefinition>>(uri, token);
         }
     }
 }

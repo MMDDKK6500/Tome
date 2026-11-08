@@ -34,7 +34,6 @@ public class SubmissionFile
     public long Size { get; set; }
 
     [JsonPropertyName("_tsDateAdded")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
     public DateTime Added { get; set; }
 
     [JsonPropertyName("_nDownloadCount")]

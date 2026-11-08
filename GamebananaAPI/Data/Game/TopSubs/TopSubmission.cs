@@ -16,10 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data.Game.TopSubs;
 
-[JsonSerializable(typeof(List<TopSubmission>))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class GameTopSubsJsonContext : JsonSerializerContext;
-
 public class TopSubmission
 {
     [JsonPropertyName("_idRow")]

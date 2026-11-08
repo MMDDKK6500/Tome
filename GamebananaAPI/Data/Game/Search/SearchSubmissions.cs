@@ -16,10 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data.Game.Search;
 
-[JsonSerializable(typeof(SearchSubmissions))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class GameSearchJsonContext : JsonSerializerContext;
-
 public class SearchSubmissions
 {
     [JsonPropertyName("_aRecords")]

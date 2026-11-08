@@ -16,11 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data.Categories;
 
-[JsonSerializable(typeof(List<TopLevelCategoryDefinition>))]
-[JsonSerializable(typeof(List<CategoryDefinition>))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class CategoryJsonContext : JsonSerializerContext;
-
 public class TopLevelCategoryDefinition
 {
     [JsonPropertyName("_sPluralTitle")]

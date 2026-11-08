@@ -16,10 +16,6 @@ using System.Text.Json.Serialization;
 
 namespace GamebananaAPI.Data.Game.Featured;
 
-[JsonSerializable(typeof(FeaturedSubmissions))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class GameFeaturedJsonContext : JsonSerializerContext;
-
 public class FeaturedSubmissions
 {
     [JsonPropertyName("_aRecords")]
@@ -71,7 +67,6 @@ public class FeaturingInfo
     public string Title { get; set; } = null!;
 
     [JsonPropertyName("_tsDate")]
-    [JsonConverter(typeof(UnixDateTimeConverter))]
     public DateTime Date { get; set; }
 }
 
