@@ -21,6 +21,8 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+using Tome.Data;
+using Tome.Data.Legacy;
 using Tome.Models;
 using Tome.Services;
 

@@ -22,6 +22,8 @@ using GamebananaAPI.Data.Submission;
 using GamebananaAPI.Data.Submission.Updates;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text;
+using Tome.Data;
+using Tome.Data.Legacy;
 using Tome.Models;
 
 namespace Tome.Services;

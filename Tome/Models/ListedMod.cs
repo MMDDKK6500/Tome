@@ -15,6 +15,7 @@
 using GamebananaAPI.Data.Submission;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Tome.Data.Legacy;
 
 namespace Tome.Models;
 

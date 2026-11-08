@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
+using Tome.Data;
 using Tome.Models;
 
 namespace Tome.Services;
@@ -49,7 +50,7 @@ public sealed class FileService
 
             using FileStream stream = File.OpenRead(path);
             
-            manifest = JsonSerializer.Deserialize(stream, TomeManifestJsonContext.Default.TomeManifest);
+            manifest = JsonSerializer.Deserialize<TomeManifest>(stream, TomeJsonContext.Default.Options);
             return manifest != null;
         }
         catch (Exception ex)
@@ -65,7 +66,7 @@ public sealed class FileService
         WriteMetaFor(path);
 
         using FileStream stream = File.Create(path);
-        JsonSerializer.Serialize(stream, manifest, TomeManifestJsonContext.Default.TomeManifest);
+        JsonSerializer.Serialize(stream, manifest, TomeJsonContext.Default.Options);
     }
 
     public void WriteMetaFor(string filePath)
@@ -73,7 +74,7 @@ public sealed class FileService
         string meta = JsonSerializer.Serialize(new TomeMeta
         {
             LastUpdatedBy = VersionInfo.BuildId,
-        }, TomeMetaJsonContext.Default.TomeMeta);
+        }, TomeJsonContext.Default.Options);
 
         string metaFile = $"{filePath}.meta";
         File.WriteAllText(metaFile, meta);

@@ -12,36 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using GamebananaAPI.Data;
 using System.Text.Json.Serialization;
 
-namespace Tome.Models;
-
-[JsonSerializable(typeof(TomeManifest))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization | JsonSourceGenerationMode.Metadata)]
-internal sealed partial class TomeManifestJsonContext : JsonSerializerContext;
-
-/// <summary>Managed mod installations.</summary>
-public sealed class TomeManifest
-{
-    /// <summary>Path to the game folder.</summary>
-    [JsonPropertyName("gamePath")]
-    public required string GamePath { get; set; }
-
-    /// <summary>Default filters to use in search, featured, top submissions.</summary>
-    [JsonPropertyName("defaultFilters")]
-    public Visibility DefaultFilters { get; set; } = Visibility.Show;
-
-    /// <summary>All installed mods, keyed by an ID (can be the Gamebanana submission ID or a random value for a local mod).</summary>
-    [JsonPropertyName("mods")]
-    public Dictionary<int, InstalledMod> Mods { get; set; } = [];
-
-    /// <summary>Installed mods which are prone to conflicts, like skins and some model/texture replacements (key: category ID, value: mod IDs).</summary>
-    [JsonPropertyName("installedConflictableMods")]
-    public Dictionary<int, List<int>> InstalledConflictableMods { get; set; } = [];
-}
+namespace Tome.Data.Legacy;
 
 /// <summary>Entry for an installed mod.</summary>
+[Obsolete]
 public sealed class InstalledMod
 {
     /// <summary>Relative path to the vpk file from the 'Deadlock\game\citadel\addons' directory.</summary>
@@ -64,6 +40,7 @@ public sealed class InstalledMod
     public string ReadableName => ListingMetadata?.Name ?? RelativePath;
 }
 
+[Obsolete]
 public sealed class GamebananaMetadata
 {
     /// <summary>The Gamebanana submission ID.</summary>
@@ -100,6 +77,7 @@ public sealed class GamebananaMetadata
 }
 
 /// <summary>Optional mod metadata that may be displayed in Tome's GUI.</summary>
+[Obsolete]
 public sealed class ListingMetadata
 {
     /// <summary>The user-readable name of the mod.</summary>

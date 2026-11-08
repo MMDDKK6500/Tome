@@ -16,6 +16,8 @@ using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using Tome.Data;
+using Tome.Data.Legacy;
 using Tome.Models;
 
 namespace Tome;

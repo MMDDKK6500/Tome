@@ -18,6 +18,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using Tome.Data;
+using Tome.Data.Legacy;
 using Tome.Models;
 using ValveKeyValue;
 
