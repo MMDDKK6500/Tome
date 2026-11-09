@@ -430,6 +430,8 @@ public sealed partial class MainWindow : Window
                 IsLocal: true,
                 localMod.ModName.Text,
                 string.IsNullOrEmpty(localMod.ModAuthor.Text) ? null : localMod.ModAuthor.Text,
+                Category: null,
+                SuperCategory: null,
                 Likes: 0,
                 Install: true,
                 HasUpdate: isUpdate)

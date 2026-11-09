@@ -24,6 +24,8 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 using Tome.Models;
 
+using System.Diagnostics;
+
 namespace Tome.Services;
 
 public sealed class GamebananaService : IDisposable
@@ -132,7 +134,8 @@ public sealed class GamebananaService : IDisposable
         TomeManifest manifest, ModActions pendingActions,
         string? submissionType = null, string? path = null,
         bool isObsolete = false, bool isLocal = false,
-        string? name = null, string? author = null, int likes = 0)
+        string? name = null, string? author = null, int likes = 0,
+        string? category = null, string? superCategory = null)
     {
         return pendingActions.TryGetValue(id, out ModAction? pendingAction)
             ? pendingAction.Mod
@@ -144,6 +147,8 @@ public sealed class GamebananaService : IDisposable
                 IsLocal: isLocal,
                 Name: name,
                 Author: author,
+                Category: category,
+                SuperCategory: superCategory,
                 Likes: likes,
                 Install: manifest.Mods.ContainsKey(id),
                 HasUpdate: !isLocal && manifest.Mods.ContainsKey(id) && await CheckUpdateAsync(manifest, id, submissionType!)
@@ -176,6 +181,25 @@ public sealed class GamebananaService : IDisposable
             if (mod.GamebananaMetadata is GamebananaMetadata gamebanana)
             {
                 SubmissionProfile submission = await GetSubmissionAsync(gamebanana.SubmissionId, gamebanana.SubmissionType);
+
+                if (submission.SuperCategory is not null)
+                {
+                    Debug.WriteLine(submission.SuperCategory.Name);
+                }
+                else
+                {
+                    Debug.WriteLine("No Super Category");
+                }
+
+                if (submission.Category is not null)
+                {
+                    Debug.WriteLine(submission.Category.Name);
+                }
+                else
+                {
+                    Debug.WriteLine("No Category");
+                }
+
                 dict.Add(id, await BuildListedModAsync(
                     id: gamebanana.SubmissionId,
                     submissionType: gamebanana.SubmissionType,
@@ -184,7 +208,11 @@ public sealed class GamebananaService : IDisposable
                     name: submission.Name,
                     author: submission.Author.Name,
                     likes: submission.Likes,
-                    
+
+                    // Maybe add null checking?
+                    category: submission.Category?.Name,
+                    superCategory: submission.SuperCategory?.Name,
+
                     manifest: manifest, pendingActions: pendingActions
                 ));
 
@@ -255,7 +283,9 @@ public sealed class GamebananaService : IDisposable
                         name: submission.Name,
                         author: submission.Author.Name,
                         likes: submission.Likes,
-                        
+                        category: submission.Category?.Name,
+                        superCategory: submission.SuperCategory?.Name,
+
                         manifest: manifest, pendingActions: pendingActions
                     )];
 
@@ -310,6 +340,12 @@ public sealed class GamebananaService : IDisposable
                 author: sub.Author.Name,
                 likes: sub.Likes,
 
+                // where is it? why do search submissions dont get a type?
+                /*
+                category: sub.Category?.Name,
+                superCategory: sub.SuperCategory?.Name,
+                */
+
                 manifest: manifest, pendingActions: pendingActions
             )));
     }
@@ -347,7 +383,10 @@ public sealed class GamebananaService : IDisposable
             name: submission.Name,
             author: submission.Author.Name,
             likes: submission.Likes,
-            
+
+            category: submission.Category?.Name,
+            superCategory: submission.SuperCategory?.Name,
+
             manifest: manifest, pendingActions: pendingActions
         )];
     }
@@ -378,16 +417,24 @@ public sealed class GamebananaService : IDisposable
         return await Task.WhenAll(top!
             .OrderBy(static sub => GetPriority(sub.Period))
             .Where(sub => sub.Type is "Sound" or "Mod" && (int)sub.SafeForWork <= (int)defaultVisibility)
-            .Select(sub => BuildListedModAsync(
-                id: sub.Id,
-                submissionType: sub.Type,
+            .Select(async sub =>
+            {
+                SubmissionProfile profile =
+                    await GetSubmissionAsync(sub.Id, sub.Type);
 
-                name: sub.Name,
-                author: sub.Author.Name,
-                likes: sub.Likes,
-
-                manifest: manifest, pendingActions: pendingActions
-            )));
+                return await BuildListedModAsync(
+                    id: sub.Id,
+                    submissionType: sub.Type,
+                    isObsolete: profile.IsObsolete,
+                    name: sub.Name,
+                    author: sub.Author.Name,
+                    likes: sub.Likes,
+                    category: profile.Category?.Name,
+                    superCategory: profile.SuperCategory?.Name,
+                    manifest: manifest,
+                    pendingActions: pendingActions
+                );
+            }));
     }
 
     public async Task<IEnumerable<ListedMod>> GetFeaturedAsync(Visibility defaultVisibility,
@@ -424,6 +471,13 @@ public sealed class GamebananaService : IDisposable
                 name: sub.Name,
                 author: sub.Author.Name,
                 likes: sub.Likes,
+
+
+                // im going to crash out there is no way
+                /*
+                category: sub.Category?.Name,
+                superCategory: sub.SuperCategory?.Name,
+                */
 
                 manifest: manifest, pendingActions: pendingActions
             )));

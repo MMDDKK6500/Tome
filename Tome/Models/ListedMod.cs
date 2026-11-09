@@ -26,6 +26,8 @@ public sealed record ListedMod(
     bool IsLocal,
     string? Name,
     string? Author,
+    string? Category,
+    string? SuperCategory,
     int Likes,
     bool Install,
     bool HasUpdate) : INotifyPropertyChanged
